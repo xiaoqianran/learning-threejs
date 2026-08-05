@@ -23,7 +23,14 @@ export const Route = createFileRoute("/")({
   component: HomePage,
 });
 
-type TrackFilter = "全部" | "基础" | "进阶" | "实战" | "工程进阶" | "创意表现";
+type TrackFilter =
+  | "全部"
+  | "基础"
+  | "进阶"
+  | "实战"
+  | "工程进阶"
+  | "创意表现"
+  | "交互进阶";
 
 function HomePage() {
   const completed = useProgress((s) => s.completed);
@@ -66,7 +73,7 @@ function HomePage() {
           <div className="flex flex-wrap items-center gap-2">
             <p className="inline-flex items-center gap-1.5 rounded-full border border-border bg-bg/60 px-2.5 py-1 text-xs font-medium text-primary">
               <Sparkles className="h-3.5 w-3.5" />
-              v3 · 创意表现
+              v4 · 交互进阶
             </p>
             {streak > 0 ? (
               <span className="rounded-full bg-surface-3 px-2.5 py-1 font-mono text-xs text-muted">
@@ -78,7 +85,7 @@ function HomePage() {
             带你系统学 Three.js
           </h1>
           <p className="mt-3 max-w-xl text-base leading-relaxed text-muted">
-            v3 新增创意表现：环境反射、Shader、平滑运镜、第一人称、Sprite 标签、作品走廊；工坊可导出代码。历史版见 v1/v2 分支与 tag。
+            v4 新增交互进阶：拖拽、昼夜、拖尾、形态过渡、多选、网格吸附；作品秀 + 进度导出。分支 v1–v4 均已保留。
           </p>
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <Link
@@ -93,11 +100,16 @@ function HomePage() {
             </Link>
             <Link
               to="/lesson/$slug"
-              params={{ slug: "env-map" }}
+              params={{ slug: "drag-interact" }}
               className="no-underline"
             >
               <Button size="lg" variant="secondary">
-                创意表现
+                交互进阶
+              </Button>
+            </Link>
+            <Link to="/showcase" className="no-underline">
+              <Button size="lg" variant="secondary">
+                作品秀
               </Button>
             </Link>
             <Link to="/versions" className="no-underline">
@@ -196,7 +208,7 @@ function HomePage() {
           </div>
           <div className="flex flex-wrap gap-2">
             {(
-              ["全部", "基础", "进阶", "实战", "工程进阶", "创意表现"] as const
+              ["全部", "基础", "进阶", "实战", "工程进阶", "创意表现", "交互进阶"] as const
             ).map((t) => (
               <button
                 key={t}
@@ -277,6 +289,11 @@ function HomePage() {
                       {lesson.track === "创意表现" ? (
                         <span className="rounded-full bg-accent/20 px-2 py-0.5 text-[10px] font-medium text-fg">
                           创意表现
+                        </span>
+                      ) : null}
+                      {lesson.track === "交互进阶" ? (
+                        <span className="rounded-full bg-primary/20 px-2 py-0.5 text-[10px] font-medium text-primary">
+                          交互进阶
                         </span>
                       ) : null}
                     </div>

@@ -99,6 +99,18 @@ function DemoBody({ kind }: { kind: DemoKind }) {
       return <BillboardDemo />;
     case "gallery":
       return <GalleryDemo />;
+    case "drag":
+      return <DragDemo />;
+    case "day-night":
+      return <DayNightDemo />;
+    case "trails":
+      return <TrailsDemo />;
+    case "morph":
+      return <MorphDemo />;
+    case "multiselect":
+      return <MultiSelectDemo />;
+    case "snap-grid":
+      return <SnapGridDemo />;
     default:
       return null;
   }
@@ -1877,6 +1889,444 @@ function GalleryDemo() {
         }}
       />
       <p className="mt-3 font-mono text-sm text-primary">{info}</p>
+    </>
+  );
+}
+
+function DragDemo() {
+  const [label, setLabel] = useState("按住拖动方块");
+  return (
+    <>
+      <ThreeCanvas
+        autoRender={false}
+        onReady={({ scene, camera, renderer, canvas }) => {
+          scene.background = new THREE.Color(0x0a0c10);
+          camera.position.set(4, 5, 6);
+          camera.lookAt(0, 0, 0);
+          scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+          const d = new THREE.DirectionalLight(0xffffff, 1);
+          d.position.set(3, 6, 2);
+          scene.add(d);
+          scene.add(new THREE.GridHelper(10, 20, 0x2a3344, 0x1a2230));
+          const mesh = new THREE.Mesh(
+            new THREE.BoxGeometry(1, 1, 1),
+            new THREE.MeshStandardMaterial({ color: 0x049ef4 }),
+          );
+          mesh.position.y = 0.5;
+          scene.add(mesh);
+          const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+          const raycaster = new THREE.Raycaster();
+          const pointer = new THREE.Vector2();
+          const hit = new THREE.Vector3();
+          let dragging = false;
+          const controls = new OrbitControls(camera, renderer.domElement);
+          controls.enableDamping = true;
+          const setPtr = (e: PointerEvent) => {
+            const rect = canvas.getBoundingClientRect();
+            pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+          };
+          const onDown = (e: PointerEvent) => {
+            setPtr(e);
+            raycaster.setFromCamera(pointer, camera);
+            const hits = raycaster.intersectObject(mesh);
+            if (hits[0]) {
+              dragging = true;
+              controls.enabled = false;
+              setLabel("拖动中…");
+            }
+          };
+          const onMove = (e: PointerEvent) => {
+            if (!dragging) return;
+            setPtr(e);
+            raycaster.setFromCamera(pointer, camera);
+            if (raycaster.ray.intersectPlane(plane, hit)) {
+              mesh.position.x = hit.x;
+              mesh.position.z = hit.z;
+              mesh.position.y = 0.5;
+            }
+          };
+          const onUp = () => {
+            if (dragging) {
+              dragging = false;
+              controls.enabled = true;
+              setLabel(`位置 (${mesh.position.x.toFixed(1)}, ${mesh.position.z.toFixed(1)})`);
+            }
+          };
+          canvas.addEventListener("pointerdown", onDown);
+          window.addEventListener("pointermove", onMove);
+          window.addEventListener("pointerup", onUp);
+          let raf = 0;
+          let dead = false;
+          const tick = () => {
+            if (dead) return;
+            raf = requestAnimationFrame(tick);
+            controls.update();
+            renderer.render(scene, camera);
+          };
+          tick();
+          return () => {
+            dead = true;
+            cancelAnimationFrame(raf);
+            canvas.removeEventListener("pointerdown", onDown);
+            window.removeEventListener("pointermove", onMove);
+            window.removeEventListener("pointerup", onUp);
+            controls.dispose();
+          };
+        }}
+      />
+      <p className="mt-3 font-mono text-sm text-primary">{label}</p>
+    </>
+  );
+}
+
+function DayNightDemo() {
+  const [t, setT] = useState(0.7);
+  const refs = useRef<{
+    sun?: THREE.DirectionalLight;
+    amb?: THREE.AmbientLight;
+    scene?: THREE.Scene;
+  }>({});
+  useEffect(() => {
+    const { sun, amb, scene } = refs.current;
+    if (!sun || !amb || !scene) return;
+    sun.intensity = THREE.MathUtils.lerp(0.05, 1.35, t);
+    sun.color.setHSL(0.12, 0.55, THREE.MathUtils.lerp(0.35, 0.85, t));
+    sun.position.set(
+      Math.cos(t * Math.PI) * 6,
+      Math.sin(t * Math.PI) * 5 + 0.5,
+      2,
+    );
+    amb.intensity = THREE.MathUtils.lerp(0.08, 0.4, t);
+    (scene.background as THREE.Color).setHSL(
+      0.6,
+      0.35,
+      THREE.MathUtils.lerp(0.02, 0.32, t),
+    );
+  }, [t]);
+  return (
+    <>
+      <ThreeCanvas
+        onReady={({ scene, camera }) => {
+          scene.background = new THREE.Color().setHSL(0.6, 0.35, 0.25);
+          camera.position.set(4, 3, 6);
+          camera.lookAt(0, 0.5, 0);
+          const ground = new THREE.Mesh(
+            new THREE.CircleGeometry(8, 48),
+            new THREE.MeshStandardMaterial({ color: 0x2a3344, roughness: 0.9 }),
+          );
+          ground.rotation.x = -Math.PI / 2;
+          scene.add(ground);
+          const house = new THREE.Mesh(
+            new THREE.BoxGeometry(1.5, 1.2, 1.5),
+            new THREE.MeshStandardMaterial({ color: 0x8a9099 }),
+          );
+          house.position.y = 0.6;
+          scene.add(house);
+          const amb = new THREE.AmbientLight(0xffffff, 0.3);
+          const sun = new THREE.DirectionalLight(0xffe0b0, 1);
+          sun.position.set(4, 5, 2);
+          scene.add(amb, sun);
+          refs.current = { sun, amb, scene };
+        }}
+      />
+      <Controls>
+        <SliderRow label="时间 (夜→昼)" value={t} min={0} max={1} onChange={setT} />
+      </Controls>
+    </>
+  );
+}
+
+function TrailsDemo() {
+  return (
+    <ThreeCanvas
+      onReady={({ scene, camera }) => {
+        scene.background = new THREE.Color(0x05070c);
+        camera.position.set(0, 4, 8);
+        camera.lookAt(0, 0, 0);
+        const ball = new THREE.Mesh(
+          new THREE.SphereGeometry(0.25, 24, 24),
+          new THREE.MeshStandardMaterial({ color: 0x049ef4, emissive: 0x113355 }),
+        );
+        scene.add(ball);
+        const max = 50;
+        const positions: THREE.Vector3[] = [];
+        const geo = new THREE.BufferGeometry().setFromPoints(
+          Array.from({ length: max }, () => new THREE.Vector3()),
+        );
+        const line = new THREE.Line(
+          geo,
+          new THREE.LineBasicMaterial({ color: 0x6e63ff, transparent: true, opacity: 0.85 }),
+        );
+        scene.add(line);
+        scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+        const d = new THREE.DirectionalLight(0xffffff, 1);
+        d.position.set(2, 4, 3);
+        scene.add(d);
+        (scene as THREE.Scene & {
+          userData: {
+            ball: THREE.Mesh;
+            positions: THREE.Vector3[];
+            line: THREE.Line;
+            t: number;
+          };
+        }).userData = { ball, positions, line, t: 0 };
+      }}
+      onFrame={({ scene }, dt) => {
+        const u = scene.userData as {
+          ball?: THREE.Mesh;
+          positions?: THREE.Vector3[];
+          line?: THREE.Line;
+          t?: number;
+        };
+        if (!u.ball || !u.positions || !u.line) return;
+        u.t = (u.t ?? 0) + dt;
+        u.ball.position.set(
+          Math.cos(u.t * 1.4) * 2.5,
+          1 + Math.sin(u.t * 2.2) * 0.8,
+          Math.sin(u.t * 1.1) * 2.5,
+        );
+        u.positions.push(u.ball.position.clone());
+        if (u.positions.length > 50) u.positions.shift();
+        u.line.geometry.setFromPoints(u.positions);
+      }}
+    />
+  );
+}
+
+function MorphDemo() {
+  const [blend, setBlend] = useState(0);
+  const dataRef = useRef<{
+    pos: Float32Array;
+    a: Float32Array;
+    b: Float32Array;
+    geo: THREE.BufferGeometry;
+  } | null>(null);
+
+  useEffect(() => {
+    const d = dataRef.current;
+    if (!d) return;
+    for (let i = 0; i < d.pos.length; i++) {
+      d.pos[i] = THREE.MathUtils.lerp(d.a[i]!, d.b[i]!, blend);
+    }
+    d.geo.attributes.position!.needsUpdate = true;
+    d.geo.computeVertexNormals();
+  }, [blend]);
+
+  return (
+    <>
+      <ThreeCanvas
+        onReady={({ scene, camera }) => {
+          scene.background = new THREE.Color(0x0a0c10);
+          camera.position.set(2.4, 1.6, 2.8);
+          const sphere = new THREE.SphereGeometry(0.9, 32, 24);
+          const box = new THREE.BoxGeometry(1.4, 1.4, 1.4, 32, 24, 32);
+          // match counts by using sphere as base and projecting box via same index count sample
+          const base = sphere;
+          const pos = (base.attributes.position!.array as Float32Array).slice();
+          const a = pos.slice();
+          const b = new Float32Array(pos.length);
+          // map each sphere vertex toward a cube shell
+          for (let i = 0; i < pos.length; i += 3) {
+            const x = pos[i]!;
+            const y = pos[i + 1]!;
+            const z = pos[i + 2]!;
+            const ax = Math.abs(x);
+            const ay = Math.abs(y);
+            const az = Math.abs(z);
+            const m = Math.max(ax, ay, az) || 1;
+            b[i] = (x / m) * 0.85;
+            b[i + 1] = (y / m) * 0.85;
+            b[i + 2] = (z / m) * 0.85;
+          }
+          void box;
+          const mat = new THREE.MeshStandardMaterial({
+            color: 0x6e63ff,
+            metalness: 0.3,
+            roughness: 0.35,
+            flatShading: true,
+          });
+          const mesh = new THREE.Mesh(base, mat);
+          scene.add(mesh);
+          scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+          const d = new THREE.DirectionalLight(0xffffff, 1.2);
+          d.position.set(3, 4, 2);
+          scene.add(d);
+          dataRef.current = {
+            pos: base.attributes.position!.array as Float32Array,
+            a,
+            b,
+            geo: base,
+          };
+        }}
+        onFrame={({ scene }, dt) => {
+          const m = scene.children.find((c) => (c as THREE.Mesh).isMesh) as
+            | THREE.Mesh
+            | undefined;
+          if (m) m.rotation.y += dt * 0.35;
+        }}
+      />
+      <Controls>
+        <SliderRow label="morph t (球→方)" value={blend} min={0} max={1} onChange={setBlend} />
+      </Controls>
+    </>
+  );
+}
+
+function MultiSelectDemo() {
+  const [info, setInfo] = useState("单击单选 · Shift 多选");
+  return (
+    <>
+      <ThreeCanvas
+        onReady={({ scene, camera, canvas }) => {
+          scene.background = new THREE.Color(0x0a0c10);
+          camera.position.set(5, 4, 6);
+          camera.lookAt(0, 0.5, 0);
+          scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+          const d = new THREE.DirectionalLight(0xffffff, 1);
+          d.position.set(3, 5, 2);
+          scene.add(d);
+          scene.add(new THREE.GridHelper(8, 16, 0x2a3344, 0x1a2230));
+          const meshes: THREE.Mesh[] = [];
+          const colors = [0x049ef4, 0x6e63ff, 0xe0b06a, 0x40c090, 0xff6688];
+          for (let i = 0; i < 5; i++) {
+            const m = new THREE.Mesh(
+              new THREE.BoxGeometry(0.9, 0.9, 0.9),
+              new THREE.MeshStandardMaterial({ color: colors[i] }),
+            );
+            m.position.set((i - 2) * 1.3, 0.45, 0);
+            m.name = `块${i + 1}`;
+            scene.add(m);
+            meshes.push(m);
+          }
+          const selected = new Set<THREE.Mesh>();
+          const refresh = () => {
+            for (const m of meshes) {
+              (m.material as THREE.MeshStandardMaterial).emissive.setHex(
+                selected.has(m) ? 0x224466 : 0x000000,
+              );
+            }
+            setInfo(
+              selected.size
+                ? `已选 ${[...selected].map((m) => m.name).join("、")}`
+                : "未选择",
+            );
+          };
+          const raycaster = new THREE.Raycaster();
+          const pointer = new THREE.Vector2();
+          const onDown = (e: PointerEvent) => {
+            const rect = canvas.getBoundingClientRect();
+            pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+            raycaster.setFromCamera(pointer, camera);
+            const hits = raycaster.intersectObjects(meshes);
+            if (!hits[0]) {
+              if (!e.shiftKey) {
+                selected.clear();
+                refresh();
+              }
+              return;
+            }
+            const obj = hits[0].object as THREE.Mesh;
+            if (e.shiftKey) {
+              if (selected.has(obj)) selected.delete(obj);
+              else selected.add(obj);
+            } else {
+              selected.clear();
+              selected.add(obj);
+            }
+            refresh();
+          };
+          canvas.addEventListener("pointerdown", onDown);
+          return () => canvas.removeEventListener("pointerdown", onDown);
+        }}
+      />
+      <p className="mt-3 font-mono text-sm text-primary">{info}</p>
+    </>
+  );
+}
+
+function SnapGridDemo() {
+  const [label, setLabel] = useState("拖到网格点");
+  return (
+    <>
+      <ThreeCanvas
+        autoRender={false}
+        onReady={({ scene, camera, renderer, canvas }) => {
+          scene.background = new THREE.Color(0x0a0c10);
+          camera.position.set(5, 6, 7);
+          camera.lookAt(0, 0, 0);
+          scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+          const d = new THREE.DirectionalLight(0xffffff, 1);
+          d.position.set(3, 6, 2);
+          scene.add(d);
+          scene.add(new THREE.GridHelper(10, 20, 0x049ef4, 0x2a3344));
+          const mesh = new THREE.Mesh(
+            new THREE.BoxGeometry(0.9, 0.9, 0.9),
+            new THREE.MeshStandardMaterial({ color: 0xe0b06a }),
+          );
+          mesh.position.set(0, 0.45, 0);
+          scene.add(mesh);
+          const cell = 1;
+          const snap = (v: number) => Math.round(v / cell) * cell;
+          const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+          const raycaster = new THREE.Raycaster();
+          const pointer = new THREE.Vector2();
+          const hit = new THREE.Vector3();
+          let dragging = false;
+          const controls = new OrbitControls(camera, renderer.domElement);
+          controls.enableDamping = true;
+          const setPtr = (e: PointerEvent) => {
+            const rect = canvas.getBoundingClientRect();
+            pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+          };
+          const onDown = (e: PointerEvent) => {
+            setPtr(e);
+            raycaster.setFromCamera(pointer, camera);
+            if (raycaster.intersectObject(mesh)[0]) {
+              dragging = true;
+              controls.enabled = false;
+            }
+          };
+          const onMove = (e: PointerEvent) => {
+            if (!dragging) return;
+            setPtr(e);
+            raycaster.setFromCamera(pointer, camera);
+            if (raycaster.ray.intersectPlane(plane, hit)) {
+              mesh.position.x = snap(hit.x);
+              mesh.position.z = snap(hit.z);
+              mesh.position.y = 0.45;
+              setLabel(`snap (${mesh.position.x}, ${mesh.position.z})`);
+            }
+          };
+          const onUp = () => {
+            dragging = false;
+            controls.enabled = true;
+          };
+          canvas.addEventListener("pointerdown", onDown);
+          window.addEventListener("pointermove", onMove);
+          window.addEventListener("pointerup", onUp);
+          let raf = 0;
+          let dead = false;
+          const tick = () => {
+            if (dead) return;
+            raf = requestAnimationFrame(tick);
+            controls.update();
+            renderer.render(scene, camera);
+          };
+          tick();
+          return () => {
+            dead = true;
+            cancelAnimationFrame(raf);
+            canvas.removeEventListener("pointerdown", onDown);
+            window.removeEventListener("pointermove", onMove);
+            window.removeEventListener("pointerup", onUp);
+            controls.dispose();
+          };
+        }}
+      />
+      <p className="mt-3 font-mono text-sm text-primary">{label}</p>
     </>
   );
 }

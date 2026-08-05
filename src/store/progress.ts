@@ -12,15 +12,17 @@ export type WrongItem = {
   at: number;
 };
 
-type ProgressState = {
+export type ProgressSnapshot = {
   completed: string[];
   quizScores: Record<string, number>;
   bookmarks: string[];
   notes: Record<string, string>;
   wrongBook: WrongItem[];
-  /** YYYY-MM-DD check-in dates */
   checkIns: string[];
   streak: number;
+};
+
+type ProgressState = ProgressSnapshot & {
   markComplete: (slug: string) => void;
   setQuizScore: (slug: string, score: number) => void;
   toggleBookmark: (slug: string) => void;
@@ -29,6 +31,8 @@ type ProgressState = {
   clearWrong: (id: string) => void;
   clearAllWrong: () => void;
   checkInToday: () => void;
+  exportSnapshot: () => ProgressSnapshot;
+  importSnapshot: (data: unknown) => boolean;
   reset: () => void;
 };
 
@@ -67,6 +71,12 @@ function computeStreak(checkIns: string[]): number {
     cursor.setDate(cursor.getDate() - 1);
   }
   return streak;
+}
+
+function isSnapshot(data: unknown): data is ProgressSnapshot {
+  if (!data || typeof data !== "object") return false;
+  const d = data as Record<string, unknown>;
+  return Array.isArray(d.completed) && typeof d.quizScores === "object";
 }
 
 export const useProgress = create<ProgressState>()(
@@ -121,6 +131,32 @@ export const useProgress = create<ProgressState>()(
         const next = [...checkIns, key];
         set({ checkIns: next, streak: computeStreak(next) });
         void yesterdayKey;
+      },
+      exportSnapshot: () => {
+        const s = get();
+        return {
+          completed: s.completed,
+          quizScores: s.quizScores,
+          bookmarks: s.bookmarks,
+          notes: s.notes,
+          wrongBook: s.wrongBook,
+          checkIns: s.checkIns,
+          streak: s.streak,
+        };
+      },
+      importSnapshot: (data) => {
+        if (!isSnapshot(data)) return false;
+        const checkIns = Array.isArray(data.checkIns) ? data.checkIns : [];
+        set({
+          completed: data.completed ?? [],
+          quizScores: data.quizScores ?? {},
+          bookmarks: data.bookmarks ?? [],
+          notes: data.notes ?? {},
+          wrongBook: data.wrongBook ?? [],
+          checkIns,
+          streak: computeStreak(checkIns),
+        });
+        return true;
       },
       reset: () =>
         set({

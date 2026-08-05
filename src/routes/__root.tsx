@@ -32,12 +32,12 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       {
-        title: "Three.js 实战学习 v3 · 中文交互教程",
+        title: "Three.js 实战学习 v4 · 中文交互教程",
       },
       {
         name: "description",
         content:
-          "Three.js 中文交互式教程 v3：创意表现——EnvMap / Shader / 运镜 / 第一人称 / 作品走廊。",
+          "Three.js 中文交互式教程 v4：交互进阶——拖拽 / 昼夜 / 拖尾 / 多选 / 吸附 + 作品秀。",
       },
     ],
     links: [
@@ -76,6 +76,7 @@ function RootDocument({ children }: { children: ReactNode }) {
 }
 
 const NAV_EXTRA = [
+  { to: "/showcase" as const, label: "作品秀", icon: LayoutDashboard },
   { to: "/studio" as const, label: "场景工坊", icon: Sparkles },
   { to: "/playground" as const, label: "代码沙盒", icon: Code2 },
   { to: "/cheatsheet" as const, label: "速查表", icon: BookMarked },
@@ -122,7 +123,7 @@ function AppShell({ children }: { children: ReactNode }) {
               Three.js 实战学习
             </span>
             <span className="hidden rounded-full bg-surface-3 px-1.5 py-0.5 font-mono text-[10px] text-primary sm:inline">
-              v3
+              v4
             </span>
           </Link>
 
@@ -228,6 +229,9 @@ function AppShell({ children }: { children: ReactNode }) {
                         ) : null}
                         {lesson.track === "创意表现" ? (
                           <span className="text-[10px] text-accent">创意表现</span>
+                        ) : null}
+                        {lesson.track === "交互进阶" ? (
+                          <span className="text-[10px] text-primary">交互进阶</span>
                         ) : null}
                       </span>
                     </Link>

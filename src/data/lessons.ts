@@ -36,7 +36,13 @@ export type DemoKind =
   | "camera-lerp"
   | "first-person"
   | "billboard"
-  | "gallery";
+  | "gallery"
+  | "drag"
+  | "day-night"
+  | "trails"
+  | "morph"
+  | "multiselect"
+  | "snap-grid";
 
 export type LessonBlock =
   | { type: "text"; title?: string; body: string }
@@ -50,7 +56,7 @@ export type Lesson = {
   title: string;
   summary: string;
   level: "入门" | "进阶" | "实战";
-  track: "基础" | "进阶" | "实战" | "工程进阶" | "创意表现";
+  track: "基础" | "进阶" | "实战" | "工程进阶" | "创意表现" | "交互进阶";
   minutes: number;
   blocks: LessonBlock[];
 };
@@ -1715,9 +1721,313 @@ scene.add(sprite)`,
       },
     ],
   },
+  // —— v4 交互进阶 ——
+  {
+    slug: "drag-interact",
+    title: "拖拽物体 Drag",
+    summary: "Raycaster + plane 交点实现 3D 拖拽。",
+    level: "进阶",
+    track: "交互进阶",
+    minutes: 12,
+    blocks: [
+      {
+        type: "text",
+        title: "拖拽原理",
+        body: "按下时用射线命中物体，移动时把射线与一个虚拟平面（常为与相机垂直或地面）求交，把物体 position 设到交点。",
+      },
+      {
+        type: "code",
+        title: "平面交点",
+        lang: "ts",
+        code: `const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0)
+const hit = new THREE.Vector3()
+raycaster.ray.intersectPlane(plane, hit)
+object.position.x = hit.x
+object.position.z = hit.z`,
+      },
+      {
+        type: "demo",
+        kind: "drag",
+        title: "动手：拖动方块",
+        hint: "按住拖动彩色方块，松开放下。",
+      },
+      {
+        type: "quiz",
+        questions: [
+          {
+            id: "dg1",
+            question: "拖拽定位常用？",
+            options: ["随机坐标", "射线与平面求交", "只改 rotation", "删 geometry"],
+            answer: 1,
+            explain: "把屏幕移动映射到 3D 平面。",
+          },
+          {
+            id: "dg2",
+            question: "拖拽时为何常禁用 OrbitControls？",
+            options: ["省电", "避免与相机旋转抢事件", "必须", "提高阴影"],
+            answer: 1,
+            explain: "同一指针事件会冲突。",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "day-night",
+    title: "昼夜循环",
+    summary: "灯光强度 / 色温 / 天空色随时间变化。",
+    level: "进阶",
+    track: "交互进阶",
+    minutes: 10,
+    blocks: [
+      {
+        type: "text",
+        title: "氛围时间轴",
+        body: "用 0~1 的 dayFactor 插值：太阳高度、DirectionalLight 强度与颜色、Ambient、背景色。不必真模拟天文。",
+      },
+      {
+        type: "code",
+        title: "简单插值",
+        lang: "ts",
+        code: `const t = dayFactor // 0 night → 1 noon
+sun.intensity = THREE.MathUtils.lerp(0.05, 1.4, t)
+sun.color.setHSL(0.1, 0.5, THREE.MathUtils.lerp(0.4, 0.9, t))
+scene.background = new THREE.Color().setHSL(0.6, 0.3, THREE.MathUtils.lerp(0.02, 0.35, t))`,
+      },
+      {
+        type: "demo",
+        kind: "day-night",
+        title: "动手：滑动时间",
+      },
+      {
+        type: "quiz",
+        questions: [
+          {
+            id: "dn1",
+            question: "昼夜核心是？",
+            options: ["换模型", "灯光与天空参数插值", "必须用物理引擎", "关相机"],
+            answer: 1,
+            explain: "氛围靠光与背景联动。",
+          },
+          {
+            id: "dn2",
+            question: "夜间太阳强度应？",
+            options: ["最大", "接近 0 并靠月光/环境补", "负数", "无穷"],
+            answer: 1,
+            explain: "否则全场景过亮。",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "motion-trails",
+    title: "运动拖尾",
+    summary: "历史位置队列绘制路径 / 残影。",
+    level: "进阶",
+    track: "交互进阶",
+    minutes: 10,
+    blocks: [
+      {
+        type: "text",
+        title: "拖尾思路",
+        body: "每帧记录物体位置到环形缓冲，用 Line 或半透明克隆体显示。游戏里常见于子弹、刀光。",
+      },
+      {
+        type: "code",
+        title: "位置队列",
+        lang: "ts",
+        code: `history.push(mesh.position.clone())
+if (history.length > 40) history.shift()
+line.geometry.setFromPoints(history)`,
+      },
+      {
+        type: "demo",
+        kind: "trails",
+        title: "动手：飞舞拖尾",
+      },
+      {
+        type: "quiz",
+        questions: [
+          {
+            id: "tr1",
+            question: "拖尾数据本质是？",
+            options: ["贴图 mipmap", "历史位置序列", "阴影 map", "音频频谱"],
+            answer: 1,
+            explain: "时间上的位置采样。",
+          },
+          {
+            id: "tr2",
+            question: "队列过长会？",
+            options: ["永远更快", "更耗内存/绘制", "自动优化", "禁用雾"],
+            answer: 1,
+            explain: "需要限制长度。",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "morph-blend",
+    title: "形态过渡 Morph",
+    summary: "在两种几何之间插值（简化 morph）。",
+    level: "进阶",
+    track: "交互进阶",
+    minutes: 12,
+    blocks: [
+      {
+        type: "text",
+        title: "Morph 概念",
+        body: "正式方案用 BufferGeometry morphAttributes；本课用相同拓扑的两套顶点手动 lerp，帮助理解「形状动画」。",
+      },
+      {
+        type: "code",
+        title: "顶点 lerp",
+        lang: "ts",
+        code: `for (let i = 0; i < count; i++) {
+  pos[i] = THREE.MathUtils.lerp(shapeA[i], shapeB[i], t)
+}
+geometry.attributes.position.needsUpdate = true
+geometry.computeVertexNormals()`,
+      },
+      {
+        type: "demo",
+        kind: "morph",
+        title: "动手：球 ⇄ 方体 变形",
+      },
+      {
+        type: "quiz",
+        questions: [
+          {
+            id: "mp1",
+            question: "顶点 morph 前提？",
+            options: ["顶点数量/拓扑兼容", "必须同颜色", "必须关灯", "只能 2 个三角"],
+            answer: 0,
+            explain: "一一对应才能插值。",
+          },
+          {
+            id: "mp2",
+            question: "改 position 后常需？",
+            options: ["删除材质", "needsUpdate + 重算法线", "换浏览器", "关阴影必现"],
+            answer: 1,
+            explain: "否则光照法线错误。",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "multi-select",
+    title: "多选与框选心智",
+    summary: "Shift 多选、集合状态与高亮。",
+    level: "实战",
+    track: "交互进阶",
+    minutes: 10,
+    blocks: [
+      {
+        type: "text",
+        title: "选择集",
+        body: "编辑器核心是 Selection Set：单击单选，Shift 切换加入/移除。高亮用 emissive 或 outline。",
+      },
+      {
+        type: "code",
+        title: "选择集",
+        lang: "ts",
+        code: `const selected = new Set<THREE.Object3D>()
+function toggle(obj: THREE.Object3D, additive: boolean) {
+  if (!additive) selected.clear()
+  if (selected.has(obj)) selected.delete(obj)
+  else selected.add(obj)
+  refreshHighlight()
+}`,
+      },
+      {
+        type: "demo",
+        kind: "multiselect",
+        title: "动手：Shift 多选",
+        hint: "单击单选；按住 Shift 点击叠加选择。",
+      },
+      {
+        type: "quiz",
+        questions: [
+          {
+            id: "ms1",
+            question: "编辑器多选状态适合存？",
+            options: ["单个 boolean", "Set/集合", "只能字符串", "雾 dens"],
+            answer: 1,
+            explain: "多个对象引用。",
+          },
+          {
+            id: "ms2",
+            question: "Shift 点击常见语义？",
+            options: ["删除场景", "加减选择集", "截图", "导出 glb"],
+            answer: 1,
+            explain: "与桌面软件一致。",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "snap-grid",
+    title: "网格吸附 Snap",
+    summary: "拖拽时坐标量化到网格。",
+    level: "实战",
+    track: "交互进阶",
+    minutes: 10,
+    blocks: [
+      {
+        type: "text",
+        title: "量化坐标",
+        body: "snap = Math.round(x / cell) * cell。关卡编辑、家具摆放必备。",
+      },
+      {
+        type: "code",
+        title: "吸附",
+        lang: "ts",
+        code: `function snap(v: number, cell = 1) {
+  return Math.round(v / cell) * cell
+}
+mesh.position.x = snap(hit.x, 0.5)
+mesh.position.z = snap(hit.z, 0.5)`,
+      },
+      {
+        type: "demo",
+        kind: "snap-grid",
+        title: "动手：吸附拖拽",
+        hint: "拖动方块会吸到网格点。",
+      },
+      {
+        type: "quiz",
+        questions: [
+          {
+            id: "sn1",
+            question: "网格吸附本质？",
+            options: ["随机抖动", "坐标量化到格子", "只改颜色", "开 Bloom"],
+            answer: 1,
+            explain: "round 到 cell 倍数。",
+          },
+          {
+            id: "sn2",
+            question: "cell 越小？",
+            options: ["越粗", "吸附越精细", "自动阴影越好", "禁用射线"],
+            answer: 1,
+            explain: "格子更密。",
+          },
+        ],
+      },
+    ],
+  },
 ];
 
-export const TRACKS = ["基础", "进阶", "实战", "工程进阶", "创意表现"] as const;
+export const TRACKS = [
+  "基础",
+  "进阶",
+  "实战",
+  "工程进阶",
+  "创意表现",
+  "交互进阶",
+] as const;
 
 export const VERSIONS = [
   {
@@ -1737,9 +2047,16 @@ export const VERSIONS = [
   {
     id: "v3",
     tag: "v3.0.0",
-    branch: "main",
+    branch: "v3",
     title: "创意表现",
     summary: "EnvMap、Shader、运镜、第一人称、Sprite、作品走廊 + 工坊导出代码。",
+  },
+  {
+    id: "v4",
+    tag: "v4.0.0",
+    branch: "main",
+    title: "交互进阶",
+    summary: "拖拽、昼夜、拖尾、形态过渡、多选、网格吸附 + 作品秀 + 进度导出。",
   },
 ] as const;
 

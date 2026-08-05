@@ -43,6 +43,12 @@ const lessonSlugs = [
   "first-person",
   "billboard",
   "gallery",
+  "snap-grid",
+  "multi-select",
+  "morph-blend",
+  "motion-trails",
+  "day-night",
+  "drag-interact",
 ];
 
 const lessonPaths = lessonSlugs.map((slug) => ({ path: `/lesson/${slug}` }));
@@ -55,6 +61,7 @@ const staticPages = [
   { path: "/certificate" },
   { path: "/cheatsheet" },
   { path: "/versions" },
+  { path: "/showcase" },
   { path: "/playground" },
   { path: "/studio" },
   ...lessonPaths,
