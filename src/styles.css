@@ -1,0 +1,93 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@theme {
+  --color-bg: #0a0c10;
+  --color-surface: #11151c;
+  --color-surface-2: #181d27;
+  --color-surface-3: #222936;
+  --color-fg: #e8ecf2;
+  --color-muted: #8b95a8;
+  --color-subtle: #5a6478;
+  --color-border: #2a3344;
+  --color-border-strong: #3d4a60;
+  --color-primary: #049ef4;
+  --color-primary-fg: #031018;
+  --color-primary-dim: #0380c7;
+  --color-primary-soft: #0c2a40;
+  --color-accent: #6e63ff;
+  --color-warn: #e0b06a;
+  --color-danger: #e07a6a;
+  --color-code-bg: #0c1016;
+  --color-code-fg: #c8d4e0;
+
+  --font-sans: "DM Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+  --font-display: "DM Sans", "Segoe UI", system-ui, sans-serif;
+
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  --shadow-soft: 0 1px 0 color-mix(in oklab, var(--color-fg) 4%, transparent),
+    0 8px 24px color-mix(in oklab, #000 35%, transparent);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    color-scheme: dark;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    background: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-primary) 35%, transparent);
+    color: var(--color-fg);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display);
+  }
+
+  .font-mono {
+    font-family: var(--font-mono);
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border-strong) transparent;
+  }
+}
