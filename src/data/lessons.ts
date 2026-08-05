@@ -30,7 +30,13 @@ export type DemoKind =
   | "colorspace"
   | "performance"
   | "r3f"
-  | "capstone";
+  | "capstone"
+  | "envmap"
+  | "shader"
+  | "camera-lerp"
+  | "first-person"
+  | "billboard"
+  | "gallery";
 
 export type LessonBlock =
   | { type: "text"; title?: string; body: string }
@@ -44,7 +50,7 @@ export type Lesson = {
   title: string;
   summary: string;
   level: "入门" | "进阶" | "实战";
-  track: "基础" | "进阶" | "实战" | "工程进阶";
+  track: "基础" | "进阶" | "实战" | "工程进阶" | "创意表现";
   minutes: number;
   blocks: LessonBlock[];
 };
@@ -955,7 +961,6 @@ window.addEventListener('resize', onResize)`,
       },
     ],
   },
-  // —— v2 工程进阶 ——
   {
     slug: "fog",
     title: "雾效与氛围 Fog",
@@ -1128,7 +1133,6 @@ scene.add(mesh)`,
     const mat = m.material
     if (!mat) return
     for (const x of Array.isArray(mat) ? mat : [mat]) {
-      // dispose maps...
       x.dispose()
     }
   })
@@ -1415,9 +1419,329 @@ base: '/learning-threejs/'
       },
     ],
   },
+  // —— v3 创意表现 ——
+  {
+    slug: "env-map",
+    title: "环境反射 EnvMap",
+    summary: "用立方体贴图 / 简易环境色做金属反射。",
+    level: "进阶",
+    track: "创意表现",
+    minutes: 12,
+    blocks: [
+      {
+        type: "text",
+        title: "金属为什么需要环境",
+        body: "没有环境信息，金属看起来像塑料。envMap 或 scene.environment 提供反射采样。本课用程序化立方体环境演示。",
+      },
+      {
+        type: "code",
+        title: "设置环境",
+        lang: "ts",
+        code: `// 简化：用 CubeTexture 或 PMREM
+scene.environment = envTexture
+material.envMap = envTexture
+material.envMapIntensity = 1.2
+material.metalness = 1
+material.roughness = 0.15`,
+      },
+      {
+        type: "demo",
+        kind: "envmap",
+        title: "动手：金属球反射",
+        hint: "调 metalness / env 强度，观察反射强弱。",
+      },
+      {
+        type: "quiz",
+        questions: [
+          {
+            id: "em1",
+            question: "金属发灰塑料感常见原因？",
+            options: ["没环境贴图", "FOV 太大", "必须用 Basic", "关掉抗锯齿"],
+            answer: 0,
+            explain: "反射依赖环境信息。",
+          },
+          {
+            id: "em2",
+            question: "envMapIntensity 控制？",
+            options: ["雾浓度", "环境反射强度", "阴影分辨率", "粒子数"],
+            answer: 1,
+            explain: "越大反射越明显。",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "shaders",
+    title: "ShaderMaterial 入门",
+    summary: "顶点/片元着色器最小示例与 uniform 动画。",
+    level: "进阶",
+    track: "创意表现",
+    minutes: 14,
+    blocks: [
+      {
+        type: "text",
+        title: "为什么要 shader",
+        body: "内置材质覆盖 80% 场景；特殊风格、溶解、水波、描边常需要自定义 GLSL。ShaderMaterial 给你完整控制。",
+      },
+      {
+        type: "code",
+        title: "最小 shader",
+        lang: "glsl",
+        code: `// vertex
+varying vec2 vUv;
+void main() {
+  vUv = uv;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}
+// fragment
+uniform float uTime;
+varying vec2 vUv;
+void main() {
+  gl_FragColor = vec4(0.5 + 0.5 * sin(uTime + vUv.x * 6.0), 0.4, 0.9, 1.0);
+}`,
+      },
+      {
+        type: "demo",
+        kind: "shader",
+        title: "动手：彩色波纹 shader",
+      },
+      {
+        type: "quiz",
+        questions: [
+          {
+            id: "shd1",
+            question: "uniform 的作用？",
+            options: ["删顶点", "从 JS 传参给着色器", "替代相机", "只用于雾"],
+            answer: 1,
+            explain: "如时间、颜色、分辨率。",
+          },
+          {
+            id: "shd2",
+            question: "varying 用于？",
+            options: ["顶点→片元插值传递", "加载模型", "OrbitControls", "dispose"],
+            answer: 0,
+            explain: "在两个阶段之间传 uv/法线等。",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "camera-lerp",
+    title: "相机平滑插值",
+    summary: "Vector3.lerp / damp 做电影运镜。",
+    level: "进阶",
+    track: "创意表现",
+    minutes: 10,
+    blocks: [
+      {
+        type: "text",
+        title: "别瞬移相机",
+        body: "交互切换焦点时，用 lerp 或 damp 平滑过渡，观感立刻专业。注意 lookAt 目标也可插值。",
+      },
+      {
+        type: "code",
+        title: "lerp 相机",
+        lang: "ts",
+        code: `const target = new THREE.Vector3(2, 1.5, 4)
+// 每帧
+camera.position.lerp(target, 1 - Math.exp(-3 * dt))
+camera.lookAt(lookTarget)`,
+      },
+      {
+        type: "demo",
+        kind: "camera-lerp",
+        title: "动手：切换机位",
+        hint: "点按钮切换预设机位，相机会平滑飞过去。",
+      },
+      {
+        type: "quiz",
+        questions: [
+          {
+            id: "cl1",
+            question: "lerp 的 t 参数含义？",
+            options: ["绝对坐标", "0~1 插值比例", "帧率", "灯光强度"],
+            answer: 1,
+            explain: "0 在起点，1 在终点。",
+          },
+          {
+            id: "cl2",
+            question: "帧率无关的平滑常用？",
+            options: ["固定 +0.01", "exp damp / 1-exp(-k*dt)", "只 setTimeout", "关渲染"],
+            answer: 1,
+            explain: "基于 dt 的阻尼更稳。",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "first-person",
+    title: "第一人称漫游",
+    summary: "PointerLock + WASD 基础移动（本站简化版）。",
+    level: "实战",
+    track: "创意表现",
+    minutes: 14,
+    blocks: [
+      {
+        type: "text",
+        title: "漫游核心",
+        body: "PointerLockControls 或自写 yaw/pitch；水平面移动用相机前方在 XZ 的投影。本 demo 用按钮模拟转向 + WASD（点击画布聚焦后键盘可用）。",
+      },
+      {
+        type: "code",
+        title: "XZ 移动",
+        lang: "ts",
+        code: `const forward = new THREE.Vector3()
+camera.getWorldDirection(forward)
+forward.y = 0
+forward.normalize()
+camera.position.addScaledVector(forward, speed * dt)`,
+      },
+      {
+        type: "demo",
+        kind: "first-person",
+        title: "动手：WASD 漫游",
+        hint: "点击画布后：W/S 前后，A/D 左右平移，Q/E 转向。",
+      },
+      {
+        type: "quiz",
+        questions: [
+          {
+            id: "fp1",
+            question: "第一人称前后移动应取？",
+            options: ["世界 +Y", "相机前方在水平面的投影", "永远 +X", "灯光方向"],
+            answer: 1,
+            explain: "避免飞天/钻地（除非飞行模式）。",
+          },
+          {
+            id: "fp2",
+            question: "PointerLock 的目的？",
+            options: ["锁材质", "捕获鼠标做视角", "加速下载", "开阴影"],
+            answer: 1,
+            explain: "沉浸式视角控制。",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "billboard",
+    title: "公告板 Sprite",
+    summary: "始终朝向相机的标签与特效面片。",
+    level: "进阶",
+    track: "创意表现",
+    minutes: 10,
+    blocks: [
+      {
+        type: "text",
+        title: "Sprite / Billboard",
+        body: "UI 标签、血条、光点常用 Sprite：平面永远面向相机。也可对 Mesh 每帧 quaternion.copy(camera.quaternion)。",
+      },
+      {
+        type: "code",
+        title: "Sprite",
+        lang: "ts",
+        code: `const map = new THREE.CanvasTexture(canvas)
+const mat = new THREE.SpriteMaterial({ map, transparent: true })
+const sprite = new THREE.Sprite(mat)
+sprite.scale.set(1, 0.4, 1)
+scene.add(sprite)`,
+      },
+      {
+        type: "demo",
+        kind: "billboard",
+        title: "动手：物体头顶标签",
+      },
+      {
+        type: "quiz",
+        questions: [
+          {
+            id: "bb1",
+            question: "Sprite 默认？",
+            options: ["背对相机", "面向相机", "只在 Orthographic 显示", "不能贴图"],
+            answer: 1,
+            explain: "公告板特性。",
+          },
+          {
+            id: "bb2",
+            question: "3D 世界标签常见做法？",
+            options: ["只用 HTML 绝对定位永远最好", "Sprite 或 CSS2DRenderer", "删相机", "只靠雾"],
+            answer: 1,
+            explain: "两种都能做世界空间标签。",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "gallery",
+    title: "综合：作品走廊",
+    summary: "多展位 + 拾取 + 平滑相机，串成可逛的走廊。",
+    level: "实战",
+    track: "创意表现",
+    minutes: 15,
+    blocks: [
+      {
+        type: "text",
+        title: "把技能串起来",
+        body: "走廊场景综合：场景图、灯光阴影、拾取、相机 lerp、雾与氛围。这是作品集友好的结构。",
+      },
+      {
+        type: "demo",
+        kind: "gallery",
+        title: "动手：逛展廊",
+        hint: "点击展品会平滑推近；点空白恢复总览机位。",
+      },
+      {
+        type: "quiz",
+        questions: [
+          {
+            id: "gy1",
+            question: "展廊点击展品后常见体验？",
+            options: ["瞬切黑屏", "平滑运镜 + 信息反馈", "必须刷新页面", "关掉灯"],
+            answer: 1,
+            explain: "运镜与 UI 反馈构成完整交互。",
+          },
+          {
+            id: "gy2",
+            question: "多展品场景注意？",
+            options: ["每个都新建 Renderer", "共享灯光与合理 draw call", "禁止雾", "禁用 dispose"],
+            answer: 1,
+            explain: "一个渲染器 + 场景组织。",
+          },
+        ],
+      },
+    ],
+  },
 ];
 
-export const TRACKS = ["基础", "进阶", "实战", "工程进阶"] as const;
+export const TRACKS = ["基础", "进阶", "实战", "工程进阶", "创意表现"] as const;
+
+export const VERSIONS = [
+  {
+    id: "v1",
+    tag: "v1.0.0",
+    branch: "v1",
+    title: "基础教程",
+    summary: "16 课：Scene 到迷你展厅，交互 Demo + 测验闭环。",
+  },
+  {
+    id: "v2",
+    tag: "v2.0.0",
+    branch: "v2",
+    title: "工程进阶",
+    summary: "25 课：雾/实例化/dispose/色彩/性能/R3F + 速查表。",
+  },
+  {
+    id: "v3",
+    tag: "v3.0.0",
+    branch: "main",
+    title: "创意表现",
+    summary: "EnvMap、Shader、运镜、第一人称、Sprite、作品走廊 + 工坊导出代码。",
+  },
+] as const;
 
 export function getLesson(slug: string): Lesson | undefined {
   return LESSONS.find((l) => l.slug === slug);
@@ -1464,7 +1788,6 @@ export function getAllQuizQuestions(): Array<
   return out;
 }
 
-/** 速查表条目 */
 export const CHEATSHEET: { title: string; items: { k: string; v: string }[] }[] = [
   {
     title: "最小闭环",
@@ -1500,6 +1823,15 @@ export const CHEATSHEET: { title: string; items: { k: string; v: string }[] }[] 
       { k: "resize", v: "aspect + setSize" },
       { k: "dispose", v: "geo/mat/tex + cancel rAF" },
       { k: "colorSpace", v: "输出 sRGB，颜色贴图 sRGB" },
+    ],
+  },
+  {
+    title: "创意表现",
+    items: [
+      { k: "envMap", v: "金属反射环境" },
+      { k: "ShaderMaterial", v: "自定义 GLSL" },
+      { k: "lerp", v: "平滑运镜" },
+      { k: "Sprite", v: "公告板标签" },
     ],
   },
 ];

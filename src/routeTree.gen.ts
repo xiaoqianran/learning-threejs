@@ -17,6 +17,7 @@ import { Route as LabRouteImport } from './routes/lab'
 import { Route as MistakesRouteImport } from './routes/mistakes'
 import { Route as PlaygroundRouteImport } from './routes/playground'
 import { Route as StudioRouteImport } from './routes/studio'
+import { Route as VersionsRouteImport } from './routes/versions'
 import { Route as LessonSlugRouteImport } from './routes/lesson.$slug'
 
 const IndexRoute = IndexRouteImport.update({
@@ -59,6 +60,11 @@ const StudioRoute = StudioRouteImport.update({
   path: '/studio',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VersionsRoute = VersionsRouteImport.update({
+  id: '/versions',
+  path: '/versions',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LessonSlugRoute = LessonSlugRouteImport.update({
   id: '/lesson/$slug',
   path: '/lesson/$slug',
@@ -74,6 +80,7 @@ export interface FileRoutesByFullPath {
   '/mistakes': typeof MistakesRoute
   '/playground': typeof PlaygroundRoute
   '/studio': typeof StudioRoute
+  '/versions': typeof VersionsRoute
   '/lesson/$slug': typeof LessonSlugRoute
 }
 export interface FileRoutesByTo {
@@ -85,6 +92,7 @@ export interface FileRoutesByTo {
   '/mistakes': typeof MistakesRoute
   '/playground': typeof PlaygroundRoute
   '/studio': typeof StudioRoute
+  '/versions': typeof VersionsRoute
   '/lesson/$slug': typeof LessonSlugRoute
 }
 export interface FileRoutesById {
@@ -97,6 +105,7 @@ export interface FileRoutesById {
   '/mistakes': typeof MistakesRoute
   '/playground': typeof PlaygroundRoute
   '/studio': typeof StudioRoute
+  '/versions': typeof VersionsRoute
   '/lesson/$slug': typeof LessonSlugRoute
 }
 export interface FileRouteTypes {
@@ -110,6 +119,7 @@ export interface FileRouteTypes {
     | '/mistakes'
     | '/playground'
     | '/studio'
+    | '/versions'
     | '/lesson/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -121,6 +131,7 @@ export interface FileRouteTypes {
     | '/mistakes'
     | '/playground'
     | '/studio'
+    | '/versions'
     | '/lesson/$slug'
   id:
     | '__root__'
@@ -132,6 +143,7 @@ export interface FileRouteTypes {
     | '/mistakes'
     | '/playground'
     | '/studio'
+    | '/versions'
     | '/lesson/$slug'
   fileRoutesById: FileRoutesById
 }
@@ -144,6 +156,7 @@ export interface RootRouteChildren {
   MistakesRoute: typeof MistakesRoute
   PlaygroundRoute: typeof PlaygroundRoute
   StudioRoute: typeof StudioRoute
+  VersionsRoute: typeof VersionsRoute
   LessonSlugRoute: typeof LessonSlugRoute
 }
 
@@ -205,6 +218,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudioRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/versions': {
+      id: '/versions'
+      path: '/versions'
+      fullPath: '/versions'
+      preLoaderRoute: typeof VersionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lesson/$slug': {
       id: '/lesson/$slug'
       path: '/lesson/$slug'
@@ -224,6 +244,7 @@ const rootRouteChildren: RootRouteChildren = {
   MistakesRoute: MistakesRoute,
   PlaygroundRoute: PlaygroundRoute,
   StudioRoute: StudioRoute,
+  VersionsRoute: VersionsRoute,
   LessonSlugRoute: LessonSlugRoute,
 }
 export const routeTree = rootRouteImport

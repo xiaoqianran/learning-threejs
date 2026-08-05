@@ -87,6 +87,18 @@ function DemoBody({ kind }: { kind: DemoKind }) {
       return <R3fDemo />;
     case "capstone":
       return <CapstoneDemo />;
+    case "envmap":
+      return <EnvMapDemo />;
+    case "shader":
+      return <ShaderDemo />;
+    case "camera-lerp":
+      return <CameraLerpDemo />;
+    case "first-person":
+      return <FirstPersonDemo />;
+    case "billboard":
+      return <BillboardDemo />;
+    case "gallery":
+      return <GalleryDemo />;
     default:
       return null;
   }
@@ -1456,6 +1468,412 @@ function CapstoneDemo() {
             canvas.removeEventListener("pointerdown", onClick);
             controls.dispose();
           };
+        }}
+      />
+      <p className="mt-3 font-mono text-sm text-primary">{info}</p>
+    </>
+  );
+}
+
+function makeGradientCubeTexture() {
+  const size = 64;
+  const faces: string[] = [];
+  const colors = [
+    ["#1a3a5c", "#049ef4"],
+    ["#2a1a4a", "#6e63ff"],
+    ["#1a4a3a", "#40c090"],
+    ["#4a2a1a", "#e0b06a"],
+    ["#1a1a3a", "#88aaff"],
+    ["#0a0c10", "#2a3344"],
+  ];
+  for (const [a, b] of colors) {
+    const c = document.createElement("canvas");
+    c.width = c.height = size;
+    const ctx = c.getContext("2d")!;
+    const g = ctx.createLinearGradient(0, 0, size, size);
+    g.addColorStop(0, a);
+    g.addColorStop(1, b);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, size, size);
+    faces.push(c.toDataURL());
+  }
+  const loader = new THREE.CubeTextureLoader();
+  return loader.load(faces);
+}
+
+function EnvMapDemo() {
+  const [metal, setMetal] = useState(1);
+  const [intensity, setIntensity] = useState(1.2);
+  const matRef = useRef<THREE.MeshStandardMaterial | null>(null);
+  useEffect(() => {
+    if (!matRef.current) return;
+    matRef.current.metalness = metal;
+    matRef.current.envMapIntensity = intensity;
+  }, [metal, intensity]);
+  return (
+    <>
+      <ThreeCanvas
+        onReady={({ scene, camera }) => {
+          scene.background = new THREE.Color(0x0a0c10);
+          camera.position.set(2.4, 1.4, 2.8);
+          const env = makeGradientCubeTexture();
+          scene.environment = env;
+          const mat = new THREE.MeshStandardMaterial({
+            color: 0xcccccc,
+            metalness: metal,
+            roughness: 0.12,
+            envMap: env,
+            envMapIntensity: intensity,
+          });
+          matRef.current = mat;
+          scene.add(new THREE.Mesh(new THREE.SphereGeometry(0.9, 64, 64), mat));
+          scene.add(new THREE.AmbientLight(0xffffff, 0.15));
+          const d = new THREE.DirectionalLight(0xffffff, 0.6);
+          d.position.set(3, 4, 2);
+          scene.add(d);
+        }}
+        onFrame={({ scene }, dt) => {
+          const m = scene.children.find((c) => (c as THREE.Mesh).isMesh) as
+            | THREE.Mesh
+            | undefined;
+          if (m) m.rotation.y += dt * 0.35;
+        }}
+      />
+      <Controls>
+        <SliderRow label="metalness" value={metal} min={0} max={1} onChange={setMetal} />
+        <SliderRow
+          label="envMapIntensity"
+          value={intensity}
+          min={0}
+          max={2.5}
+          onChange={setIntensity}
+        />
+      </Controls>
+    </>
+  );
+}
+
+function ShaderDemo() {
+  return (
+    <ThreeCanvas
+      onReady={({ scene, camera }) => {
+        scene.background = new THREE.Color(0x05070c);
+        camera.position.set(2.2, 1.4, 2.6);
+        const uniforms = { uTime: { value: 0 } };
+        const mat = new THREE.ShaderMaterial({
+          uniforms,
+          vertexShader: `
+            varying vec2 vUv;
+            void main() {
+              vUv = uv;
+              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+          `,
+          fragmentShader: `
+            uniform float uTime;
+            varying vec2 vUv;
+            void main() {
+              float w = 0.5 + 0.5 * sin(uTime * 2.0 + vUv.x * 8.0 + vUv.y * 4.0);
+              vec3 col = mix(vec3(0.02, 0.2, 0.45), vec3(0.43, 0.39, 1.0), w);
+              gl_FragColor = vec4(col, 1.0);
+            }
+          `,
+        });
+        const mesh = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 3), mat);
+        scene.add(mesh);
+        (scene as THREE.Scene & { userData: { u: typeof uniforms; mesh: THREE.Mesh } }).userData = {
+          u: uniforms,
+          mesh,
+        };
+      }}
+      onFrame={({ scene }, dt) => {
+        const u = scene.userData as {
+          u?: { uTime: { value: number } };
+          mesh?: THREE.Mesh;
+        };
+        if (u.u) u.u.uTime.value += dt;
+        if (u.mesh) {
+          u.mesh.rotation.y += dt * 0.3;
+          u.mesh.rotation.x += dt * 0.15;
+        }
+      }}
+    />
+  );
+}
+
+function CameraLerpDemo() {
+  const targetRef = useRef(new THREE.Vector3(3, 2, 4));
+  const lookRef = useRef(new THREE.Vector3(0, 0.5, 0));
+  const shots = [
+    { pos: [3, 2, 4] as const, look: [0, 0.5, 0] as const, label: "总览" },
+    { pos: [1.2, 0.8, 1.5] as const, look: [0, 0.5, 0] as const, label: "特写" },
+    { pos: [-2.5, 1.5, 2] as const, look: [0, 0.4, 0] as const, label: "侧位" },
+    { pos: [0, 4, 0.2] as const, look: [0, 0, 0] as const, label: "俯视" },
+  ];
+  return (
+    <>
+      <ThreeCanvas
+        onReady={({ scene, camera }) => {
+          scene.background = new THREE.Color(0x0a0c10);
+          camera.position.set(3, 2, 4);
+          const mesh = new THREE.Mesh(
+            new THREE.TorusKnotGeometry(0.55, 0.18, 100, 16),
+            new THREE.MeshStandardMaterial({ color: 0x049ef4, metalness: 0.4, roughness: 0.3 }),
+          );
+          mesh.position.y = 0.6;
+          scene.add(mesh);
+          scene.add(new THREE.GridHelper(8, 16, 0x2a3344, 0x1a2230));
+          scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+          const d = new THREE.DirectionalLight(0xffffff, 1.1);
+          d.position.set(3, 5, 2);
+          scene.add(d);
+          (scene as THREE.Scene & { userData: { mesh: THREE.Mesh } }).userData = { mesh };
+        }}
+        onFrame={({ scene, camera }, dt) => {
+          const k = 1 - Math.exp(-3.5 * dt);
+          camera.position.lerp(targetRef.current, k);
+          const look = lookRef.current;
+          camera.lookAt(look);
+          const mesh = (scene.userData as { mesh?: THREE.Mesh }).mesh;
+          if (mesh) mesh.rotation.y += dt * 0.4;
+        }}
+      />
+      <div className="mt-3 flex flex-wrap gap-2">
+        {shots.map((s) => (
+          <button
+            key={s.label}
+            type="button"
+            className="rounded-full bg-surface-3 px-3 py-1.5 text-xs font-medium text-muted hover:bg-primary hover:text-primary-fg"
+            onClick={() => {
+              targetRef.current.set(s.pos[0], s.pos[1], s.pos[2]);
+              lookRef.current.set(s.look[0], s.look[1], s.look[2]);
+            }}
+
+          >
+            {s.label}
+          </button>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function FirstPersonDemo() {
+  const [hint, setHint] = useState("点击画布后用 WASD 移动，Q/E 转向");
+  return (
+    <>
+      <ThreeCanvas
+        onReady={({ scene, camera, canvas }) => {
+          scene.background = new THREE.Color(0x0a0c10);
+          camera.position.set(0, 1.4, 5);
+          camera.rotation.order = "YXZ";
+          scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+          const d = new THREE.DirectionalLight(0xffffff, 1);
+          d.position.set(4, 6, 2);
+          scene.add(d);
+          const ground = new THREE.Mesh(
+            new THREE.PlaneGeometry(30, 30),
+            new THREE.MeshStandardMaterial({ color: 0x161b24 }),
+          );
+          ground.rotation.x = -Math.PI / 2;
+          scene.add(ground);
+          for (let i = 0; i < 12; i++) {
+            const m = new THREE.Mesh(
+              new THREE.BoxGeometry(1, 1 + (i % 3), 1),
+              new THREE.MeshStandardMaterial({ color: i % 2 ? 0x049ef4 : 0x6e63ff }),
+            );
+            const a = (i / 12) * Math.PI * 2;
+            m.position.set(Math.cos(a) * 5, m.geometry.parameters.height / 2, Math.sin(a) * 5);
+            scene.add(m);
+          }
+          const keys: Record<string, boolean> = {};
+          const onKey = (e: KeyboardEvent) => {
+            keys[e.code] = e.type === "keydown";
+          };
+          window.addEventListener("keydown", onKey);
+          window.addEventListener("keyup", onKey);
+          canvas.tabIndex = 0;
+          canvas.addEventListener("pointerdown", () => {
+            canvas.focus();
+            setHint("W/S 前后 · A/D 平移 · Q/E 转向");
+          });
+          (scene as THREE.Scene & { userData: { keys: typeof keys; camera: THREE.Camera } }).userData =
+            { keys, camera };
+          return () => {
+            window.removeEventListener("keydown", onKey);
+            window.removeEventListener("keyup", onKey);
+          };
+        }}
+        onFrame={({ scene, camera }, dt) => {
+          const keys = (scene.userData as { keys?: Record<string, boolean> }).keys ?? {};
+          const speed = 3.2;
+          const turn = 1.6;
+          if (keys["KeyQ"]) camera.rotation.y += turn * dt;
+          if (keys["KeyE"]) camera.rotation.y -= turn * dt;
+          const forward = new THREE.Vector3();
+          camera.getWorldDirection(forward);
+          forward.y = 0;
+          forward.normalize();
+          const right = new THREE.Vector3().crossVectors(forward, new THREE.Vector3(0, 1, 0)).negate();
+          if (keys["KeyW"]) camera.position.addScaledVector(forward, speed * dt);
+          if (keys["KeyS"]) camera.position.addScaledVector(forward, -speed * dt);
+          if (keys["KeyA"]) camera.position.addScaledVector(right, -speed * dt);
+          if (keys["KeyD"]) camera.position.addScaledVector(right, speed * dt);
+          camera.position.y = 1.4;
+        }}
+      />
+      <p className="mt-3 font-mono text-sm text-primary">{hint}</p>
+    </>
+  );
+}
+
+function BillboardDemo() {
+  return (
+    <ThreeCanvas
+      autoRender={false}
+      onReady={({ scene, camera, renderer }) => {
+        scene.background = new THREE.Color(0x0a0c10);
+        camera.position.set(3, 2, 4);
+        const ball = new THREE.Mesh(
+          new THREE.SphereGeometry(0.55, 32, 32),
+          new THREE.MeshStandardMaterial({ color: 0x049ef4 }),
+        );
+        ball.position.y = 0.55;
+        scene.add(ball);
+        const c = document.createElement("canvas");
+        c.width = 256;
+        c.height = 96;
+        const ctx = c.getContext("2d")!;
+        ctx.fillStyle = "rgba(10,12,16,0.85)";
+        ctx.roundRect(0, 0, 256, 96, 16);
+        ctx.fill();
+        ctx.strokeStyle = "#049ef4";
+        ctx.lineWidth = 4;
+        ctx.stroke();
+        ctx.fillStyle = "#e8ecf2";
+        ctx.font = "bold 28px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("HELLO CUBE", 128, 56);
+        const map = new THREE.CanvasTexture(c);
+        map.colorSpace = THREE.SRGBColorSpace;
+        const sprite = new THREE.Sprite(
+          new THREE.SpriteMaterial({ map, transparent: true }),
+        );
+        sprite.scale.set(1.6, 0.6, 1);
+        sprite.position.set(0, 1.5, 0);
+        scene.add(sprite);
+        scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+        const d = new THREE.DirectionalLight(0xffffff, 1);
+        d.position.set(3, 4, 2);
+        scene.add(d);
+        scene.add(new THREE.GridHelper(6, 12, 0x2a3344, 0x1a2230));
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        let raf = 0;
+        let dead = false;
+        const tick = () => {
+          if (dead) return;
+          raf = requestAnimationFrame(tick);
+          ball.position.y = 0.55 + Math.sin(performance.now() * 0.002) * 0.15;
+          sprite.position.y = ball.position.y + 0.95;
+          controls.update();
+          renderer.render(scene, camera);
+        };
+        tick();
+        return () => {
+          dead = true;
+          cancelAnimationFrame(raf);
+          controls.dispose();
+          map.dispose();
+        };
+      }}
+    />
+  );
+}
+
+function GalleryDemo() {
+  const [info, setInfo] = useState("点击展品推近 · 点空白恢复");
+  const camTarget = useRef(new THREE.Vector3(0, 2.2, 7));
+  const lookTarget = useRef(new THREE.Vector3(0, 1, 0));
+  return (
+    <>
+      <ThreeCanvas
+        onReady={({ scene, camera, canvas, renderer }) => {
+          const bg = 0x0a0c10;
+          scene.background = new THREE.Color(bg);
+          scene.fog = new THREE.Fog(bg, 8, 22);
+          camera.position.copy(camTarget.current);
+          renderer.shadowMap.enabled = true;
+          const floor = new THREE.Mesh(
+            new THREE.PlaneGeometry(24, 10),
+            new THREE.MeshStandardMaterial({ color: 0x141a22, roughness: 0.9 }),
+          );
+          floor.rotation.x = -Math.PI / 2;
+          floor.receiveShadow = true;
+          scene.add(floor);
+          const exhibits: THREE.Mesh[] = [];
+          const specs = [
+            { name: "Icosa", color: 0x049ef4, geo: new THREE.IcosahedronGeometry(0.5, 0), x: -3 },
+            { name: "Knot", color: 0x6e63ff, geo: new THREE.TorusKnotGeometry(0.35, 0.12, 80, 12), x: 0 },
+            { name: "Capsule", color: 0xe0b06a, geo: new THREE.CapsuleGeometry(0.3, 0.45, 6, 12), x: 3 },
+          ];
+          for (const s of specs) {
+            const stand = new THREE.Mesh(
+              new THREE.CylinderGeometry(0.5, 0.6, 0.4, 20),
+              new THREE.MeshStandardMaterial({ color: 0x222936 }),
+            );
+            stand.position.set(s.x, 0.2, 0);
+            stand.castShadow = true;
+            stand.receiveShadow = true;
+            scene.add(stand);
+            const art = new THREE.Mesh(
+              s.geo,
+              new THREE.MeshStandardMaterial({ color: s.color, metalness: 0.4, roughness: 0.3 }),
+            );
+            art.position.set(s.x, 1.1, 0);
+            art.castShadow = true;
+            art.name = s.name;
+            art.userData.home = new THREE.Vector3(s.x, 1.6, 2.2);
+            scene.add(art);
+            exhibits.push(art);
+          }
+          scene.add(new THREE.AmbientLight(0xffffff, 0.3));
+          const key = new THREE.DirectionalLight(0xffffff, 1.2);
+          key.position.set(4, 8, 3);
+          key.castShadow = true;
+          scene.add(key);
+          const raycaster = new THREE.Raycaster();
+          const pointer = new THREE.Vector2();
+          const onClick = (e: PointerEvent) => {
+            const rect = canvas.getBoundingClientRect();
+            pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+            raycaster.setFromCamera(pointer, camera);
+            const hits = raycaster.intersectObjects(exhibits);
+            if (hits[0]) {
+              const obj = hits[0].object as THREE.Mesh;
+              const home = obj.userData.home as THREE.Vector3;
+              camTarget.current.copy(home);
+              lookTarget.current.set(obj.position.x, 1.1, 0);
+              setInfo(`展品：${obj.name}`);
+            } else {
+              camTarget.current.set(0, 2.2, 7);
+              lookTarget.current.set(0, 1, 0);
+              setInfo("总览机位");
+            }
+          };
+          canvas.addEventListener("pointerdown", onClick);
+          (scene as THREE.Scene & { userData: { exhibits: THREE.Mesh[] } }).userData = {
+            exhibits,
+          };
+          return () => canvas.removeEventListener("pointerdown", onClick);
+        }}
+        onFrame={({ scene, camera }, dt) => {
+          const k = 1 - Math.exp(-3 * dt);
+          camera.position.lerp(camTarget.current, k);
+          camera.lookAt(lookTarget.current);
+          const exhibits = (scene.userData as { exhibits?: THREE.Mesh[] }).exhibits ?? [];
+          for (const e of exhibits) e.rotation.y += dt * 0.5;
         }}
       />
       <p className="mt-3 font-mono text-sm text-primary">{info}</p>

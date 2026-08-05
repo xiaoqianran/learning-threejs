@@ -9,7 +9,6 @@ const isGitHubPages =
   process.env.GITHUB_PAGES === "true" ||
   process.env.NITRO_PRESET === "github_pages";
 
-/** Project Pages site: https://xiaoqianran.github.io/learning-threejs/ */
 const base = isGitHubPages ? "/learning-threejs/" : "/";
 
 const lessonSlugs = [
@@ -38,6 +37,12 @@ const lessonSlugs = [
   "r3f-map",
   "pitfalls",
   "capstone",
+  "env-map",
+  "shaders",
+  "camera-lerp",
+  "first-person",
+  "billboard",
+  "gallery",
 ];
 
 const lessonPaths = lessonSlugs.map((slug) => ({ path: `/lesson/${slug}` }));
@@ -49,6 +54,7 @@ const staticPages = [
   { path: "/mistakes" },
   { path: "/certificate" },
   { path: "/cheatsheet" },
+  { path: "/versions" },
   { path: "/playground" },
   { path: "/studio" },
   ...lessonPaths,

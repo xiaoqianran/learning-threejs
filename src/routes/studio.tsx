@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { Sparkles } from "lucide-react";
+import { Check, Copy, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/studio")({
   component: StudioPage,
@@ -15,7 +16,6 @@ type MatKind = "standard" | "basic" | "normal" | "phong";
 function StudioPage() {
   const hostRef = useRef<HTMLDivElement>(null);
   const meshRef = useRef<THREE.Mesh | null>(null);
-  const matRef = useRef<THREE.Material | null>(null);
   const lightsRef = useRef<{
     ambient: THREE.AmbientLight;
     key: THREE.DirectionalLight;
@@ -29,8 +29,61 @@ function StudioPage() {
   const [ambientI, setAmbientI] = useState(0.35);
   const [keyI, setKeyI] = useState(1.2);
   const [wireframe, setWireframe] = useState(false);
+  const [copied, setCopied] = useState(false);
 
-  // Boot scene once
+  const exported = useMemo(() => {
+    const geoExpr =
+      geo === "box"
+        ? "new THREE.BoxGeometry(1.2, 1.2, 1.2)"
+        : geo === "sphere"
+          ? "new THREE.SphereGeometry(0.85, 48, 48)"
+          : geo === "torus"
+            ? "new THREE.TorusGeometry(0.65, 0.25, 20, 48)"
+            : "new THREE.TorusKnotGeometry(0.55, 0.18, 128, 24)";
+    const matExpr =
+      mat === "basic"
+        ? `new THREE.MeshBasicMaterial({ color: 0x${color.slice(1)}, wireframe: ${wireframe} })`
+        : mat === "normal"
+          ? `new THREE.MeshNormalMaterial({ wireframe: ${wireframe} })`
+          : mat === "phong"
+            ? `new THREE.MeshPhongMaterial({ color: 0x${color.slice(1)}, shininess: 80, wireframe: ${wireframe} })`
+            : `new THREE.MeshStandardMaterial({ color: 0x${color.slice(1)}, metalness: ${metalness.toFixed(2)}, roughness: ${roughness.toFixed(2)}, wireframe: ${wireframe} })`;
+    return `import * as THREE from 'three'
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+
+const scene = new THREE.Scene()
+scene.background = new THREE.Color(0x0a0c10)
+const camera = new THREE.PerspectiveCamera(50, w / h, 0.1, 100)
+camera.position.set(3, 2.2, 4)
+const renderer = new THREE.WebGLRenderer({ antialias: true })
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2))
+renderer.setSize(w, h)
+document.body.appendChild(renderer.domElement)
+
+scene.add(new THREE.AmbientLight(0xffffff, ${ambientI.toFixed(2)}))
+const key = new THREE.DirectionalLight(0xffffff, ${keyI.toFixed(2)})
+key.position.set(4, 5, 2)
+scene.add(key)
+
+const mesh = new THREE.Mesh(
+  ${geoExpr},
+  ${matExpr},
+)
+scene.add(mesh)
+
+const controls = new OrbitControls(camera, renderer.domElement)
+controls.enableDamping = true
+
+function tick() {
+  requestAnimationFrame(tick)
+  mesh.rotation.y += 0.006
+  controls.update()
+  renderer.render(scene, camera)
+}
+tick()
+`;
+  }, [geo, mat, color, metalness, roughness, ambientI, keyI, wireframe]);
+
   useEffect(() => {
     const host = hostRef.current;
     if (!host) return;
@@ -62,7 +115,6 @@ function StudioPage() {
       metalness: 0.35,
       roughness: 0.35,
     });
-    matRef.current = material;
     const mesh = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 1.2), material);
     meshRef.current = mesh;
     scene.add(mesh);
@@ -98,18 +150,16 @@ function StudioPage() {
       ro.disconnect();
       controls.dispose();
       mesh.geometry.dispose();
-      material.dispose();
+      (mesh.material as THREE.Material).dispose();
       renderer.dispose();
       if (renderer.domElement.parentElement === host) {
         host.removeChild(renderer.domElement);
       }
       meshRef.current = null;
-      matRef.current = null;
       lightsRef.current = null;
     };
   }, []);
 
-  // Geometry switch
   useEffect(() => {
     const mesh = meshRef.current;
     if (!mesh) return;
@@ -121,7 +171,6 @@ function StudioPage() {
       mesh.geometry = new THREE.TorusKnotGeometry(0.55, 0.18, 128, 24);
   }, [geo]);
 
-  // Material switch / params
   useEffect(() => {
     const mesh = meshRef.current;
     if (!mesh) return;
@@ -134,11 +183,7 @@ function StudioPage() {
     } else if (mat === "normal") {
       next = new THREE.MeshNormalMaterial({ wireframe });
     } else if (mat === "phong") {
-      next = new THREE.MeshPhongMaterial({
-        color: c,
-        shininess: 80,
-        wireframe,
-      });
+      next = new THREE.MeshPhongMaterial({ color: c, shininess: 80, wireframe });
     } else {
       next = new THREE.MeshStandardMaterial({
         color: c,
@@ -148,7 +193,6 @@ function StudioPage() {
       });
     }
     mesh.material = next;
-    matRef.current = next;
   }, [mat, color, metalness, roughness, wireframe]);
 
   useEffect(() => {
@@ -157,18 +201,28 @@ function StudioPage() {
     lightsRef.current.key.intensity = keyI;
   }, [ambientI, keyI]);
 
+  async function copyCode() {
+    try {
+      await navigator.clipboard.writeText(exported);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* ignore */
+    }
+  }
+
   return (
     <div className="mx-auto max-w-5xl pb-16">
       <header className="mb-5">
         <p className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-primary">
           <Sparkles className="h-3.5 w-3.5" />
-          场景工坊
+          场景工坊 · v3
         </p>
         <h1 className="mt-1 font-display text-2xl font-semibold text-fg">
-          实时调参实验室
+          实时调参 + 导出代码
         </h1>
         <p className="mt-1 text-sm text-muted">
-          切换几何 / 材质 / 灯光，拖拽环视观察效果
+          调好几何 / 材质 / 灯光后一键复制可运行片段
         </p>
       </header>
 
@@ -217,30 +271,12 @@ function StudioPage() {
 
           {mat === "standard" ? (
             <>
-              <Range
-                label="metalness"
-                value={metalness}
-                min={0}
-                max={1}
-                onChange={setMetalness}
-              />
-              <Range
-                label="roughness"
-                value={roughness}
-                min={0}
-                max={1}
-                onChange={setRoughness}
-              />
+              <Range label="metalness" value={metalness} min={0} max={1} onChange={setMetalness} />
+              <Range label="roughness" value={roughness} min={0} max={1} onChange={setRoughness} />
             </>
           ) : null}
 
-          <Range
-            label="Ambient"
-            value={ambientI}
-            min={0}
-            max={2}
-            onChange={setAmbientI}
-          />
+          <Range label="Ambient" value={ambientI} min={0} max={2} onChange={setAmbientI} />
           <Range label="Key light" value={keyI} min={0} max={3} onChange={setKeyI} />
 
           <label className="flex items-center gap-2 text-sm text-muted">
@@ -252,8 +288,17 @@ function StudioPage() {
             />
             线框模式
           </label>
+
+          <Button className="w-full" onClick={copyCode}>
+            {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+            {copied ? "已复制" : "导出代码"}
+          </Button>
         </aside>
       </div>
+
+      <pre className="scrollbar-thin mt-4 max-h-64 overflow-auto rounded-xl border border-border bg-code-bg p-4 font-mono text-[11px] leading-relaxed text-code-fg whitespace-pre">
+        {exported}
+      </pre>
     </div>
   );
 }

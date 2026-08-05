@@ -14,6 +14,7 @@ import {
   LayoutDashboard,
   Code2,
   BookMarked,
+  GitBranch,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMemo, useState } from "react";
@@ -22,7 +23,7 @@ export const Route = createFileRoute("/")({
   component: HomePage,
 });
 
-type TrackFilter = "全部" | "基础" | "进阶" | "实战" | "工程进阶";
+type TrackFilter = "全部" | "基础" | "进阶" | "实战" | "工程进阶" | "创意表现";
 
 function HomePage() {
   const completed = useProgress((s) => s.completed);
@@ -65,7 +66,7 @@ function HomePage() {
           <div className="flex flex-wrap items-center gap-2">
             <p className="inline-flex items-center gap-1.5 rounded-full border border-border bg-bg/60 px-2.5 py-1 text-xs font-medium text-primary">
               <Sparkles className="h-3.5 w-3.5" />
-              v2 · 工程进阶
+              v3 · 创意表现
             </p>
             {streak > 0 ? (
               <span className="rounded-full bg-surface-3 px-2.5 py-1 font-mono text-xs text-muted">
@@ -77,7 +78,7 @@ function HomePage() {
             带你系统学 Three.js
           </h1>
           <p className="mt-3 max-w-xl text-base leading-relaxed text-muted">
-            v2 新增工程进阶：雾、实例化、dispose、色彩管理、性能、R3F 对照与毕业清单；附速查表。
+            v3 新增创意表现：环境反射、Shader、平滑运镜、第一人称、Sprite 标签、作品走廊；工坊可导出代码。历史版见 v1/v2 分支与 tag。
           </p>
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <Link
@@ -92,17 +93,17 @@ function HomePage() {
             </Link>
             <Link
               to="/lesson/$slug"
-              params={{ slug: "fog" }}
+              params={{ slug: "env-map" }}
               className="no-underline"
             >
               <Button size="lg" variant="secondary">
-                工程进阶
+                创意表现
               </Button>
             </Link>
-            <Link to="/cheatsheet" className="no-underline">
+            <Link to="/versions" className="no-underline">
               <Button size="lg" variant="secondary">
-                <BookMarked className="h-4 w-4" />
-                速查表
+                <GitBranch className="h-4 w-4" />
+                版本线
               </Button>
             </Link>
             <Link to="/studio" className="no-underline">
@@ -114,6 +115,12 @@ function HomePage() {
               <Button size="lg" variant="ghost">
                 <Code2 className="h-4 w-4" />
                 代码沙盒
+              </Button>
+            </Link>
+            <Link to="/cheatsheet" className="no-underline">
+              <Button size="lg" variant="ghost">
+                <BookMarked className="h-4 w-4" />
+                速查表
               </Button>
             </Link>
             <Link to="/lab" className="no-underline">
@@ -188,7 +195,9 @@ function HomePage() {
             <p className="mt-1 text-sm text-muted">搜索与路径筛选</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            {(["全部", "基础", "进阶", "实战", "工程进阶"] as const).map((t) => (
+            {(
+              ["全部", "基础", "进阶", "实战", "工程进阶", "创意表现"] as const
+            ).map((t) => (
               <button
                 key={t}
                 type="button"
@@ -263,6 +272,11 @@ function HomePage() {
                       {lesson.track === "工程进阶" ? (
                         <span className="rounded-full bg-warn/15 px-2 py-0.5 text-[10px] font-medium text-warn">
                           工程进阶
+                        </span>
+                      ) : null}
+                      {lesson.track === "创意表现" ? (
+                        <span className="rounded-full bg-accent/20 px-2 py-0.5 text-[10px] font-medium text-fg">
+                          创意表现
                         </span>
                       ) : null}
                     </div>
