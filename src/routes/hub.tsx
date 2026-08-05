@@ -31,8 +31,20 @@ function HubPage() {
   const importSnapshot = useProgress((s) => s.importSnapshot);
   const fileRef = useRef<HTMLInputElement>(null);
   const [msg, setMsg] = useState<string | null>(null);
+  const [noteQuery, setNoteQuery] = useState("");
 
-  const noteEntries = Object.entries(notes).filter(([, v]) => v.trim());
+  const noteEntries = Object.entries(notes)
+    .filter(([, v]) => v.trim())
+    .filter(([slug, text]) => {
+      const q = noteQuery.trim().toLowerCase();
+      if (!q) return true;
+      const title = LESSONS.find((l) => l.slug === slug)?.title ?? slug;
+      return (
+        title.toLowerCase().includes(q) ||
+        text.toLowerCase().includes(q) ||
+        slug.includes(q)
+      );
+    });
   const avgScore =
     Object.keys(quizScores).length === 0
       ? null
@@ -71,7 +83,7 @@ function HubPage() {
     <div className="mx-auto max-w-3xl pb-16">
       <header className="mb-6">
         <p className="text-xs font-medium uppercase tracking-wider text-primary">
-          v4
+          v5
         </p>
         <h1 className="mt-1 font-display text-2xl font-semibold text-fg">
           学习中心
@@ -169,12 +181,21 @@ function HubPage() {
         </section>
       ) : null}
 
-      {noteEntries.length > 0 ? (
+      {(Object.entries(notes).filter(([, v]) => v.trim()).length > 0) ? (
         <section className="mt-4 rounded-xl border border-border bg-surface p-5">
           <h2 className="mb-3 flex items-center gap-2 font-display text-base font-semibold">
             <StickyNote className="h-4 w-4 text-primary" />
             笔记
           </h2>
+          <input
+            value={noteQuery}
+            onChange={(e) => setNoteQuery(e.target.value)}
+            placeholder="搜索笔记…"
+            className="mb-3 h-10 w-full rounded-lg border border-border bg-surface-2 px-3 text-sm text-fg placeholder:text-subtle"
+          />
+          {noteEntries.length === 0 ? (
+            <p className="text-sm text-muted">没有匹配的笔记</p>
+          ) : (
           <ul className="space-y-3">
             {noteEntries.map(([slug, text]) => {
               const l = LESSONS.find((x) => x.slug === slug);
@@ -197,6 +218,7 @@ function HubPage() {
               );
             })}
           </ul>
+          )}
         </section>
       ) : null}
 
@@ -209,6 +231,12 @@ function HubPage() {
         </Link>
         <Link to="/mistakes" className="no-underline">
           <Button variant="ghost">错题本</Button>
+        </Link>
+        <Link to="/path" className="no-underline">
+          <Button variant="ghost">学习路径</Button>
+        </Link>
+        <Link to="/challenge" className="no-underline">
+          <Button variant="ghost">每日挑战</Button>
         </Link>
         <Link to="/showcase" className="no-underline">
           <Button variant="ghost">作品秀</Button>

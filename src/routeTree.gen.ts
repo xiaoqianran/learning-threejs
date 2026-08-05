@@ -11,10 +11,12 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CertificateRouteImport } from './routes/certificate'
+import { Route as ChallengeRouteImport } from './routes/challenge'
 import { Route as CheatsheetRouteImport } from './routes/cheatsheet'
 import { Route as HubRouteImport } from './routes/hub'
 import { Route as LabRouteImport } from './routes/lab'
 import { Route as MistakesRouteImport } from './routes/mistakes'
+import { Route as PathRouteImport } from './routes/path'
 import { Route as PlaygroundRouteImport } from './routes/playground'
 import { Route as ShowcaseRouteImport } from './routes/showcase'
 import { Route as StudioRouteImport } from './routes/studio'
@@ -29,6 +31,11 @@ const IndexRoute = IndexRouteImport.update({
 const CertificateRoute = CertificateRouteImport.update({
   id: '/certificate',
   path: '/certificate',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChallengeRoute = ChallengeRouteImport.update({
+  id: '/challenge',
+  path: '/challenge',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CheatsheetRoute = CheatsheetRouteImport.update({
@@ -49,6 +56,11 @@ const LabRoute = LabRouteImport.update({
 const MistakesRoute = MistakesRouteImport.update({
   id: '/mistakes',
   path: '/mistakes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PathRoute = PathRouteImport.update({
+  id: '/path',
+  path: '/path',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PlaygroundRoute = PlaygroundRouteImport.update({
@@ -80,10 +92,12 @@ const LessonSlugRoute = LessonSlugRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/certificate': typeof CertificateRoute
+  '/challenge': typeof ChallengeRoute
   '/cheatsheet': typeof CheatsheetRoute
   '/hub': typeof HubRoute
   '/lab': typeof LabRoute
   '/mistakes': typeof MistakesRoute
+  '/path': typeof PathRoute
   '/playground': typeof PlaygroundRoute
   '/showcase': typeof ShowcaseRoute
   '/studio': typeof StudioRoute
@@ -93,10 +107,12 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/certificate': typeof CertificateRoute
+  '/challenge': typeof ChallengeRoute
   '/cheatsheet': typeof CheatsheetRoute
   '/hub': typeof HubRoute
   '/lab': typeof LabRoute
   '/mistakes': typeof MistakesRoute
+  '/path': typeof PathRoute
   '/playground': typeof PlaygroundRoute
   '/showcase': typeof ShowcaseRoute
   '/studio': typeof StudioRoute
@@ -107,10 +123,12 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/certificate': typeof CertificateRoute
+  '/challenge': typeof ChallengeRoute
   '/cheatsheet': typeof CheatsheetRoute
   '/hub': typeof HubRoute
   '/lab': typeof LabRoute
   '/mistakes': typeof MistakesRoute
+  '/path': typeof PathRoute
   '/playground': typeof PlaygroundRoute
   '/showcase': typeof ShowcaseRoute
   '/studio': typeof StudioRoute
@@ -122,10 +140,12 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/certificate'
+    | '/challenge'
     | '/cheatsheet'
     | '/hub'
     | '/lab'
     | '/mistakes'
+    | '/path'
     | '/playground'
     | '/showcase'
     | '/studio'
@@ -135,10 +155,12 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/certificate'
+    | '/challenge'
     | '/cheatsheet'
     | '/hub'
     | '/lab'
     | '/mistakes'
+    | '/path'
     | '/playground'
     | '/showcase'
     | '/studio'
@@ -148,10 +170,12 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/certificate'
+    | '/challenge'
     | '/cheatsheet'
     | '/hub'
     | '/lab'
     | '/mistakes'
+    | '/path'
     | '/playground'
     | '/showcase'
     | '/studio'
@@ -162,10 +186,12 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CertificateRoute: typeof CertificateRoute
+  ChallengeRoute: typeof ChallengeRoute
   CheatsheetRoute: typeof CheatsheetRoute
   HubRoute: typeof HubRoute
   LabRoute: typeof LabRoute
   MistakesRoute: typeof MistakesRoute
+  PathRoute: typeof PathRoute
   PlaygroundRoute: typeof PlaygroundRoute
   ShowcaseRoute: typeof ShowcaseRoute
   StudioRoute: typeof StudioRoute
@@ -187,6 +213,13 @@ declare module '@tanstack/react-router' {
       path: '/certificate'
       fullPath: '/certificate'
       preLoaderRoute: typeof CertificateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/challenge': {
+      id: '/challenge'
+      path: '/challenge'
+      fullPath: '/challenge'
+      preLoaderRoute: typeof ChallengeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cheatsheet': {
@@ -215,6 +248,13 @@ declare module '@tanstack/react-router' {
       path: '/mistakes'
       fullPath: '/mistakes'
       preLoaderRoute: typeof MistakesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/path': {
+      id: '/path'
+      path: '/path'
+      fullPath: '/path'
+      preLoaderRoute: typeof PathRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/playground': {
@@ -258,10 +298,12 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CertificateRoute: CertificateRoute,
+  ChallengeRoute: ChallengeRoute,
   CheatsheetRoute: CheatsheetRoute,
   HubRoute: HubRoute,
   LabRoute: LabRoute,
   MistakesRoute: MistakesRoute,
+  PathRoute: PathRoute,
   PlaygroundRoute: PlaygroundRoute,
   ShowcaseRoute: ShowcaseRoute,
   StudioRoute: StudioRoute,

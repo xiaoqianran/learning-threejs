@@ -111,6 +111,12 @@ function DemoBody({ kind }: { kind: DemoKind }) {
       return <MultiSelectDemo />;
     case "snap-grid":
       return <SnapGridDemo />;
+    case "touch":
+      return <TouchDemo />;
+    case "portfolio":
+      return <PortfolioDemo />;
+    case "finale":
+      return <FinaleDemo />;
     default:
       return null;
   }
@@ -2322,6 +2328,197 @@ function SnapGridDemo() {
             canvas.removeEventListener("pointerdown", onDown);
             window.removeEventListener("pointermove", onMove);
             window.removeEventListener("pointerup", onUp);
+            controls.dispose();
+          };
+        }}
+      />
+      <p className="mt-3 font-mono text-sm text-primary">{label}</p>
+    </>
+  );
+}
+
+function TouchDemo() {
+  return (
+    <ThreeCanvas
+      autoRender={false}
+      onReady={({ scene, camera, renderer, canvas }) => {
+        scene.background = new THREE.Color(0x0a0c10);
+        camera.position.set(3, 2.2, 4);
+        renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
+        canvas.style.touchAction = "none";
+        scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+        const d = new THREE.DirectionalLight(0xffffff, 1.1);
+        d.position.set(3, 5, 2);
+        scene.add(d);
+        const mesh = new THREE.Mesh(
+          new THREE.TorusKnotGeometry(0.55, 0.18, 100, 16),
+          new THREE.MeshStandardMaterial({ color: 0x049ef4, metalness: 0.35, roughness: 0.35 }),
+        );
+        scene.add(mesh);
+        scene.add(new THREE.GridHelper(6, 12, 0x2a3344, 0x1a2230));
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.enablePan = false;
+        let raf = 0;
+        let dead = false;
+        const tick = () => {
+          if (dead) return;
+          raf = requestAnimationFrame(tick);
+          mesh.rotation.y += 0.008;
+          controls.update();
+          renderer.render(scene, camera);
+        };
+        tick();
+        return () => {
+          dead = true;
+          cancelAnimationFrame(raf);
+          controls.dispose();
+        };
+      }}
+    />
+  );
+}
+
+function PortfolioDemo() {
+  const [idx, setIdx] = useState(0);
+  const cards = [
+    { title: "Mini Gallery", stack: "three · Vite", op: "拖拽环视 · 点击展品" },
+    { title: "Neon Shader", stack: "ShaderMaterial", op: "时间驱动色带" },
+    { title: "Snap Editor", stack: "Raycaster · snap", op: "拖拽吸附网格" },
+  ];
+  const c = cards[idx]!;
+  return (
+    <>
+      <ThreeCanvas
+        onReady={({ scene, camera }) => {
+          scene.background = new THREE.Color(0x0a0c10);
+          camera.position.set(2.5, 1.6, 3.2);
+          const mesh = new THREE.Mesh(
+            new THREE.IcosahedronGeometry(0.85, 0),
+            new THREE.MeshStandardMaterial({ color: 0x6e63ff, metalness: 0.4, roughness: 0.3 }),
+          );
+          scene.add(mesh);
+          scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+          const d = new THREE.DirectionalLight(0xffffff, 1);
+          d.position.set(3, 4, 2);
+          scene.add(d);
+          (scene as THREE.Scene & { userData: { mesh: THREE.Mesh } }).userData = { mesh };
+        }}
+        onFrame={({ scene }, dt) => {
+          const mesh = (scene.userData as { mesh?: THREE.Mesh }).mesh;
+          if (mesh) mesh.rotation.y += dt * 0.5;
+        }}
+      />
+      <div className="mt-3 rounded-lg border border-border bg-surface-2 p-3">
+        <p className="font-display text-sm font-semibold text-fg">{c.title}</p>
+        <p className="mt-1 font-mono text-xs text-primary">{c.stack}</p>
+        <p className="mt-1 text-xs text-muted">操作：{c.op}</p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {cards.map((x, i) => (
+            <button
+              key={x.title}
+              type="button"
+              className={cn(
+                "rounded-full px-2.5 py-1 text-[11px]",
+                i === idx ? "bg-primary text-primary-fg" : "bg-surface-3 text-muted",
+              )}
+              onClick={() => setIdx(i)}
+            >
+              {x.title}
+            </button>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
+function FinaleDemo() {
+  const [label, setLabel] = useState("点击雕塑推近 · 空白恢复");
+  const camT = useRef(new THREE.Vector3(4, 2.5, 6));
+  const lookT = useRef(new THREE.Vector3(0, 0.8, 0));
+  return (
+    <>
+      <ThreeCanvas
+        autoRender={false}
+        onReady={({ scene, camera, renderer, canvas }) => {
+          const bg = 0x0a0c10;
+          scene.background = new THREE.Color(bg);
+          scene.fog = new THREE.Fog(bg, 10, 28);
+          camera.position.copy(camT.current);
+          renderer.shadowMap.enabled = true;
+          canvas.style.touchAction = "none";
+          const floor = new THREE.Mesh(
+            new THREE.CircleGeometry(10, 48),
+            new THREE.MeshStandardMaterial({ color: 0x141a22, roughness: 0.92 }),
+          );
+          floor.rotation.x = -Math.PI / 2;
+          floor.receiveShadow = true;
+          scene.add(floor);
+          const pieces: THREE.Mesh[] = [];
+          const specs = [
+            { x: -2.2, color: 0x049ef4, geo: new THREE.TorusKnotGeometry(0.45, 0.14, 90, 14), name: "Knot" },
+            { x: 0, color: 0x6e63ff, geo: new THREE.IcosahedronGeometry(0.7, 1), name: "Ico" },
+            { x: 2.2, color: 0xe0b06a, geo: new THREE.CapsuleGeometry(0.35, 0.5, 6, 12), name: "Cap" },
+          ];
+          for (const s of specs) {
+            const m = new THREE.Mesh(
+              s.geo,
+              new THREE.MeshStandardMaterial({ color: s.color, metalness: 0.45, roughness: 0.28 }),
+            );
+            m.position.set(s.x, 1, 0);
+            m.castShadow = true;
+            m.name = s.name;
+            scene.add(m);
+            pieces.push(m);
+          }
+          scene.add(new THREE.AmbientLight(0xffffff, 0.28));
+          const key = new THREE.DirectionalLight(0xffffff, 1.25);
+          key.position.set(5, 8, 3);
+          key.castShadow = true;
+          scene.add(key);
+          const controls = new OrbitControls(camera, renderer.domElement);
+          controls.enableDamping = true;
+          controls.target.copy(lookT.current);
+          const raycaster = new THREE.Raycaster();
+          const pointer = new THREE.Vector2();
+          const onDown = (e: PointerEvent) => {
+            const rect = canvas.getBoundingClientRect();
+            pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+            raycaster.setFromCamera(pointer, camera);
+            const hit = raycaster.intersectObjects(pieces)[0];
+            if (hit) {
+              const o = hit.object as THREE.Mesh;
+              camT.current.set(o.position.x + 1.2, 1.6, 2.4);
+              lookT.current.set(o.position.x, 1, 0);
+              setLabel(`焦点：${o.name}`);
+            } else {
+              camT.current.set(4, 2.5, 6);
+              lookT.current.set(0, 0.8, 0);
+              setLabel("总览机位");
+            }
+          };
+          canvas.addEventListener("pointerdown", onDown);
+          let raf = 0;
+          let dead = false;
+          const clock = new THREE.Clock();
+          const tick = () => {
+            if (dead) return;
+            raf = requestAnimationFrame(tick);
+            const dt = clock.getDelta();
+            const k = 1 - Math.exp(-3 * dt);
+            camera.position.lerp(camT.current, k);
+            controls.target.lerp(lookT.current, k);
+            for (const p of pieces) p.rotation.y += dt * 0.35;
+            controls.update();
+            renderer.render(scene, camera);
+          };
+          tick();
+          return () => {
+            dead = true;
+            cancelAnimationFrame(raf);
+            canvas.removeEventListener("pointerdown", onDown);
             controls.dispose();
           };
         }}

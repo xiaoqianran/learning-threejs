@@ -42,7 +42,10 @@ export type DemoKind =
   | "trails"
   | "morph"
   | "multiselect"
-  | "snap-grid";
+  | "snap-grid"
+  | "touch"
+  | "portfolio"
+  | "finale";
 
 export type LessonBlock =
   | { type: "text"; title?: string; body: string }
@@ -56,7 +59,7 @@ export type Lesson = {
   title: string;
   summary: string;
   level: "入门" | "进阶" | "实战";
-  track: "基础" | "进阶" | "实战" | "工程进阶" | "创意表现" | "交互进阶";
+  track: "基础" | "进阶" | "实战" | "工程进阶" | "创意表现" | "交互进阶" | "作品收官";
   minutes: number;
   blocks: LessonBlock[];
 };
@@ -2018,6 +2021,153 @@ mesh.position.z = snap(hit.z, 0.5)`,
       },
     ],
   },
+  {
+    slug: "touch-mobile",
+    title: "触控与移动端",
+    summary: "touch-action、双指缩放兼容、性能与像素比。",
+    level: "实战",
+    track: "作品收官",
+    minutes: 10,
+    blocks: [
+      {
+        type: "text",
+        title: "移动端三件套",
+        body: "1) canvas.style.touchAction = 'none' 避免页面滚动抢手势\n2) pixelRatio 上限 1.5~2\n3) OrbitControls 本身支持触控；自定义拖拽用 pointer 事件",
+      },
+      {
+        type: "code",
+        title: "触控友好配置",
+        lang: "ts",
+        code: `renderer.domElement.style.touchAction = 'none'
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75))
+controls.enableDamping = true`,
+      },
+      {
+        type: "demo",
+        kind: "touch",
+        title: "动手：触控友好场景",
+        hint: "手机单指旋转、双指缩放；桌面仍可拖拽。",
+      },
+      {
+        type: "quiz",
+        questions: [
+          {
+            id: "tm1",
+            question: "touch-action: none 的目的？",
+            options: ["提高分辨率", "避免浏览器默认手势干扰 3D", "开阴影", "换材质"],
+            answer: 1,
+            explain: "把指针交给 three 控件。",
+          },
+          {
+            id: "tm2",
+            question: "移动端 pixelRatio 建议？",
+            options: ["无限", "限制上限", "必须 4", "设 0"],
+            answer: 1,
+            explain: "填充率压力大。",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "portfolio-ship",
+    title: "作品集打包上线",
+    summary: "README、操作说明、截图、base 路径、可复现仓库。",
+    level: "实战",
+    track: "作品收官",
+    minutes: 12,
+    blocks: [
+      {
+        type: "text",
+        title: "招聘官 30 秒能看懂吗",
+        body: "仓库首页写清：主题 / 技术栈 / 操作方式 / 在线链接 / 截图。部署注意 Vite base 与 SPA fallback。",
+      },
+      {
+        type: "code",
+        title: "README 骨架",
+        lang: "md",
+        code: `# Mini Gallery
+Three.js 展厅 Demo
+
+## 操作
+- 拖拽环视 · 点击展品查看信息
+
+## 技术
+- three · Vite · TypeScript
+
+## 本地
+npm i && npm run dev`,
+      },
+      {
+        type: "demo",
+        kind: "portfolio",
+        title: "动手：作品集预览卡",
+      },
+      {
+        type: "quiz",
+        questions: [
+          {
+            id: "pf1",
+            question: "作品仓库最需要有？",
+            options: ["只有 node_modules", "可运行说明 + 在线链接 + 截图", "密钥", "无 README"],
+            answer: 1,
+            explain: "降低阅读成本。",
+          },
+          {
+            id: "pf2",
+            question: "GitHub Pages 子路径常见坑？",
+            options: ["天气", "base 路径未配置", "CPU", "必须用 Vue"],
+            answer: 1,
+            explain: "资源 404。",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "final-piece",
+    title: "终章：可展示作品",
+    summary: "综合灯光、交互、运镜与氛围，交一份作品骨架。",
+    level: "实战",
+    track: "作品收官",
+    minutes: 15,
+    blocks: [
+      {
+        type: "text",
+        title: "交作业标准",
+        body: "主题明确 · 可交互 · 有反馈 · resize/dispose · 能讲清技术点。下方 Demo 可当模板改色/换几何即成作品。",
+      },
+      {
+        type: "demo",
+        kind: "finale",
+        title: "动手：终章作品模板",
+        hint: "点击雕塑切换焦点；拖拽环视。把这套结构搬进自己的仓库。",
+      },
+      {
+        type: "tip",
+        body: "v5 为主版本终版：之后优先修 bug 与内容微调。",
+      },
+      {
+        type: "quiz",
+        questions: [
+          {
+            id: "fn1",
+            question: "作品演示应优先保证？",
+            options: ["炫技 shader 堆满", "稳定可交互 + 讲清设计", "强制 4K 贴图", "关所有灯光"],
+            answer: 1,
+            explain: "可演示、可叙述。",
+          },
+          {
+            id: "fn2",
+            question: "离开页时？",
+            options: ["不管", "停循环并 dispose", "必须 alert", "删 git"],
+            answer: 1,
+            explain: "工程素养。",
+          },
+        ],
+      },
+    ],
+  },
 ];
 
 export const TRACKS = [
@@ -2027,6 +2177,7 @@ export const TRACKS = [
   "工程进阶",
   "创意表现",
   "交互进阶",
+  "作品收官",
 ] as const;
 
 export const VERSIONS = [
@@ -2054,11 +2205,173 @@ export const VERSIONS = [
   {
     id: "v4",
     tag: "v4.0.0",
-    branch: "main",
+    branch: "v4",
     title: "交互进阶",
     summary: "拖拽、昼夜、拖尾、形态过渡、多选、网格吸附 + 作品秀 + 进度导出。",
   },
+  {
+    id: "v5",
+    tag: "v5.0.0",
+    branch: "main",
+    title: "作品收官（终版）",
+    summary: "学习路径、每日挑战、触控/作品集/终章模板。主版本线到此收官。",
+  },
 ] as const;
+
+export type LearningPath = {
+  id: string;
+  title: string;
+  audience: string;
+  minutes: number;
+  slugs: string[];
+};
+
+export const LEARNING_PATHS: LearningPath[] = [
+  {
+    id: "starter",
+    title: "周末入门",
+    audience: "零基础，先跑通 Hello Cube",
+    minutes: 90,
+    slugs: [
+      "intro",
+      "scene-camera-renderer",
+      "geometries",
+      "materials",
+      "lights",
+      "transforms",
+      "controls",
+      "animation",
+      "project",
+    ],
+  },
+  {
+    id: "engineer",
+    title: "工程素养",
+    audience: "要上线、要排障、要性能",
+    minutes: 120,
+    slugs: [
+      "fog",
+      "helpers",
+      "instancing",
+      "dispose",
+      "color-space",
+      "performance",
+      "pitfalls",
+      "r3f-map",
+      "capstone",
+    ],
+  },
+  {
+    id: "creative",
+    title: "视觉向",
+    audience: "想做出好看的交互体验",
+    minutes: 100,
+    slugs: [
+      "env-map",
+      "shaders",
+      "camera-lerp",
+      "billboard",
+      "particles",
+      "postprocessing",
+      "gallery",
+      "day-night",
+      "motion-trails",
+    ],
+  },
+  {
+    id: "ship",
+    title: "作品上线",
+    audience: "准备作品集 / 面试演示",
+    minutes: 80,
+    slugs: [
+      "drag-interact",
+      "multi-select",
+      "snap-grid",
+      "first-person",
+      "touch-mobile",
+      "portfolio-ship",
+      "final-piece",
+      "project",
+      "capstone",
+    ],
+  },
+];
+
+export type DailyChallenge = {
+  id: string;
+  title: string;
+  brief: string;
+  lessonSlug: string;
+  checklist: string[];
+};
+
+export const DAILY_CHALLENGES: DailyChallenge[] = [
+  {
+    id: "c-cube",
+    title: "会呼吸的立方体",
+    brief: "用 Clock + scale 做脉冲动画，并限制 pixelRatio。",
+    lessonSlug: "animation",
+    checklist: ["使用 getDelta", "scale 正弦变化", "注释写清转速单位"],
+  },
+  {
+    id: "c-light",
+    title: "三点光布光",
+    brief: "环境 + 主光 + 补光，让 Standard 材质有立体感。",
+    lessonSlug: "lights",
+    checklist: ["至少 3 盏灯", "主光有方向", "自述布光理由"],
+  },
+  {
+    id: "c-pick",
+    title: "点击高亮",
+    brief: "Raycaster 命中后改变 emissive，并显示名称。",
+    lessonSlug: "raycasting",
+    checklist: ["归一化指针坐标", "命中反馈", "未命中可清空"],
+  },
+  {
+    id: "c-fog",
+    title: "雾中展厅",
+    brief: "背景色对齐 fog，营造景深。",
+    lessonSlug: "fog",
+    checklist: ["Fog near/far", "background 接近 fog", "有地面参照"],
+  },
+  {
+    id: "c-drag",
+    title: "可拖拽道具",
+    brief: "平面求交拖拽，拖动时禁用 OrbitControls。",
+    lessonSlug: "drag-interact",
+    checklist: ["pointer 事件", "拖动中禁用控制", "松开放下"],
+  },
+  {
+    id: "c-shader",
+    title: "一枚自定义着色",
+    brief: "ShaderMaterial + uTime 做简单波动色。",
+    lessonSlug: "shaders",
+    checklist: ["vertex/fragment", "uniform 时间", "能跑循环"],
+  },
+  {
+    id: "c-ship",
+    title: "作品卡",
+    brief: "为自己的 Demo 写 5 行 README 操作说明。",
+    lessonSlug: "portfolio-ship",
+    checklist: ["主题一句话", "操作说明", "技术栈列表"],
+  },
+];
+
+export function getDailyChallenge(date = new Date()): DailyChallenge {
+  const start = new Date(date.getFullYear(), 0, 0);
+  const diff = date.getTime() - start.getTime();
+  const day = Math.floor(diff / 86400000);
+  return DAILY_CHALLENGES[day % DAILY_CHALLENGES.length]!;
+}
+
+export function pathProgress(slugs: string[], completed: string[]) {
+  const done = slugs.filter((s) => completed.includes(s)).length;
+  return {
+    done,
+    total: slugs.length,
+    pct: slugs.length ? Math.round((done / slugs.length) * 100) : 0,
+  };
+}
 
 export function getLesson(slug: string): Lesson | undefined {
   return LESSONS.find((l) => l.slug === slug);
@@ -2149,6 +2462,15 @@ export const CHEATSHEET: { title: string; items: { k: string; v: string }[] }[] 
       { k: "ShaderMaterial", v: "自定义 GLSL" },
       { k: "lerp", v: "平滑运镜" },
       { k: "Sprite", v: "公告板标签" },
+    ],
+  },
+  {
+    title: "作品收官",
+    items: [
+      { k: "touch-action", v: "none 交给 3D" },
+      { k: "README", v: "操作 / 链接 / 截图" },
+      { k: "base", v: "Pages 子路径" },
+      { k: "dispose", v: "离开页必做" },
     ],
   },
 ];

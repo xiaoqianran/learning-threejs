@@ -73,11 +73,10 @@ function CertificatePage() {
               Certificate of Completion
             </p>
             <h2 className="mt-3 font-display text-2xl font-semibold text-fg sm:text-3xl">
-              Three.js 实战学习 · v4
+              Three.js 实战学习 · v5 终版
             </h2>
             <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-muted">
-              兹证明持有人已完成本站全部课程（基础 + 进阶 + 实战 + 工程进阶 +
-              创意表现 + 交互进阶），覆盖渲染、工程素养与创意表现技能。
+              兹证明持有人已完成本站全部课程（全部路径（含作品收官）），覆盖渲染、工程素养与创意表现技能。
             </p>
             <dl className="mx-auto mt-6 grid max-w-sm grid-cols-2 gap-3 text-sm">
               <div className="rounded-lg bg-surface-2 px-3 py-2">

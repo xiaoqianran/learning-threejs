@@ -1,46 +1,40 @@
 # learning-threejs
 
-Three.js 中文交互式教程 — 讲解 / 3D Demo / 测验 / 工程 · 创意 · 交互。
+Three.js 中文交互式教程（**v5 主版本终版**）
 
 **在线：** https://xiaoqianran.github.io/learning-threejs/
 
 ## 版本分支（请保留）
 
-| 版本 | Git tag | 分支 | 内容 |
+| 版本 | Tag | 分支 | 内容 |
 | --- | --- | --- | --- |
-| v1 | `v1.0.0` | `v1` | 16 课基础教程 |
-| v2 | `v2.0.0` | `v2` | 工程进阶 + 速查表 |
-| v3 | `v3.0.0` | `v3` | 创意表现 + 工坊导出 |
-| v4 | `v4.0.0` | `main` | 交互进阶 + 作品秀 + 进度导出（最新） |
+| v1 | `v1.0.0` | `v1` | 基础教程 |
+| v2 | `v2.0.0` | `v2` | 工程进阶 |
+| v3 | `v3.0.0` | `v3` | 创意表现 |
+| v4 | `v4.0.0` | `v4` | 交互进阶 |
+| **v5** | **`v5.0.0`** | **main** | **作品收官（终版）** |
 
 ```bash
-git checkout v1   # 或 v1.0.0
-git checkout v2
-git checkout v3
-git checkout main # 最新 v4
+git checkout v1|v2|v3|v4|main
 ```
 
-Pages 始终部署 **main**。
+Pages 部署 **main**。主功能版本线到 **v5 收官**；后续仅 bugfix / 小改。
 
-## 功能（v4）
+## v5 功能
 
-- **37 节课程** · 六条路径（含交互进阶）
-- 拖拽 / 昼夜 / 拖尾 / Morph / 多选 / 网格吸附
-- **作品秀** 精选 Demo 墙
-- 场景工坊导出代码 · 进度 JSON 导入导出
-- 代码沙盒 / 速查表 / 版本说明
+- 40 课 · 七条 track
+- 学习路径（周末入门 / 工程 / 视觉 / 上线）
+- 每日挑战 + 打卡
+- 触控、作品集打包、终章模板
+- 作品秀 · 工坊导出 · 进度 JSON
 
 ## 开发
 
 ```bash
-npm install && npm run dev
+npm i && npm run dev
+npm run build:pages
+npm run typecheck
 ```
-
-| 命令 | 说明 |
-| --- | --- |
-| `npm run build` | Vercel |
-| `npm run build:pages` | GitHub Pages |
-| `npm run typecheck` | TS |
 
 ## License
 

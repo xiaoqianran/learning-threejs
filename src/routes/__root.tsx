@@ -32,12 +32,12 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       {
-        title: "Three.js 实战学习 v4 · 中文交互教程",
+        title: "Three.js 实战学习 v5 · 中文交互教程（终版）",
       },
       {
         name: "description",
         content:
-          "Three.js 中文交互式教程 v4：交互进阶——拖拽 / 昼夜 / 拖尾 / 多选 / 吸附 + 作品秀。",
+          "Three.js 中文交互式教程 v5 终版：学习路径 · 每日挑战 · 作品收官。",
       },
     ],
     links: [
@@ -76,6 +76,8 @@ function RootDocument({ children }: { children: ReactNode }) {
 }
 
 const NAV_EXTRA = [
+  { to: "/path" as const, label: "路径", icon: LayoutDashboard },
+  { to: "/challenge" as const, label: "挑战", icon: FlaskConical },
   { to: "/showcase" as const, label: "作品秀", icon: LayoutDashboard },
   { to: "/studio" as const, label: "场景工坊", icon: Sparkles },
   { to: "/playground" as const, label: "代码沙盒", icon: Code2 },
@@ -123,7 +125,7 @@ function AppShell({ children }: { children: ReactNode }) {
               Three.js 实战学习
             </span>
             <span className="hidden rounded-full bg-surface-3 px-1.5 py-0.5 font-mono text-[10px] text-primary sm:inline">
-              v4
+              v5
             </span>
           </Link>
 

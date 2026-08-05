@@ -20,6 +20,7 @@ export type ProgressSnapshot = {
   wrongBook: WrongItem[];
   checkIns: string[];
   streak: number;
+  completedChallenges: string[];
 };
 
 type ProgressState = ProgressSnapshot & {
@@ -31,6 +32,7 @@ type ProgressState = ProgressSnapshot & {
   clearWrong: (id: string) => void;
   clearAllWrong: () => void;
   checkInToday: () => void;
+  markChallenge: (key: string) => void;
   exportSnapshot: () => ProgressSnapshot;
   importSnapshot: (data: unknown) => boolean;
   reset: () => void;
@@ -89,6 +91,7 @@ export const useProgress = create<ProgressState>()(
       wrongBook: [],
       checkIns: [],
       streak: 0,
+      completedChallenges: [],
       markComplete: (slug) =>
         set((s) =>
           s.completed.includes(slug)
@@ -132,6 +135,16 @@ export const useProgress = create<ProgressState>()(
         set({ checkIns: next, streak: computeStreak(next) });
         void yesterdayKey;
       },
+      markChallenge: (key) =>
+        set((s) =>
+          s.completedChallenges.includes(key)
+            ? s
+            : {
+                completedChallenges: [...s.completedChallenges, key].slice(
+                  -120,
+                ),
+              },
+        ),
       exportSnapshot: () => {
         const s = get();
         return {
@@ -142,6 +155,7 @@ export const useProgress = create<ProgressState>()(
           wrongBook: s.wrongBook,
           checkIns: s.checkIns,
           streak: s.streak,
+          completedChallenges: s.completedChallenges,
         };
       },
       importSnapshot: (data) => {
@@ -155,6 +169,7 @@ export const useProgress = create<ProgressState>()(
           wrongBook: data.wrongBook ?? [],
           checkIns,
           streak: computeStreak(checkIns),
+          completedChallenges: data.completedChallenges ?? [],
         });
         return true;
       },
@@ -167,13 +182,14 @@ export const useProgress = create<ProgressState>()(
           wrongBook: [],
           checkIns: [],
           streak: 0,
+          completedChallenges: [],
         }),
     }),
     {
       name: "threejs-learn-progress-v1",
-      version: 1,
-      migrate: (persisted) => {
-        const p = (persisted ?? {}) as Partial<ProgressState>;
+      version: 2,
+      migrate: (persisted, from) => {
+        const p = (persisted ?? {}) as Partial<ProgressSnapshot>;
         return {
           completed: p.completed ?? [],
           quizScores: p.quizScores ?? {},
@@ -182,6 +198,8 @@ export const useProgress = create<ProgressState>()(
           wrongBook: p.wrongBook ?? [],
           checkIns: p.checkIns ?? [],
           streak: p.streak ?? 0,
+          completedChallenges:
+            from < 2 ? [] : (p.completedChallenges ?? []),
         };
       },
     },
