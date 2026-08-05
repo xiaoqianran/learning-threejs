@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CertificateRouteImport } from './routes/certificate'
+import { Route as CheatsheetRouteImport } from './routes/cheatsheet'
 import { Route as HubRouteImport } from './routes/hub'
 import { Route as LabRouteImport } from './routes/lab'
 import { Route as MistakesRouteImport } from './routes/mistakes'
@@ -26,6 +27,11 @@ const IndexRoute = IndexRouteImport.update({
 const CertificateRoute = CertificateRouteImport.update({
   id: '/certificate',
   path: '/certificate',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheatsheetRoute = CheatsheetRouteImport.update({
+  id: '/cheatsheet',
+  path: '/cheatsheet',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HubRoute = HubRouteImport.update({
@@ -62,6 +68,7 @@ const LessonSlugRoute = LessonSlugRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/certificate': typeof CertificateRoute
+  '/cheatsheet': typeof CheatsheetRoute
   '/hub': typeof HubRoute
   '/lab': typeof LabRoute
   '/mistakes': typeof MistakesRoute
@@ -72,6 +79,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/certificate': typeof CertificateRoute
+  '/cheatsheet': typeof CheatsheetRoute
   '/hub': typeof HubRoute
   '/lab': typeof LabRoute
   '/mistakes': typeof MistakesRoute
@@ -83,6 +91,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/certificate': typeof CertificateRoute
+  '/cheatsheet': typeof CheatsheetRoute
   '/hub': typeof HubRoute
   '/lab': typeof LabRoute
   '/mistakes': typeof MistakesRoute
@@ -95,6 +104,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/certificate'
+    | '/cheatsheet'
     | '/hub'
     | '/lab'
     | '/mistakes'
@@ -105,6 +115,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/certificate'
+    | '/cheatsheet'
     | '/hub'
     | '/lab'
     | '/mistakes'
@@ -115,6 +126,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/certificate'
+    | '/cheatsheet'
     | '/hub'
     | '/lab'
     | '/mistakes'
@@ -126,6 +138,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CertificateRoute: typeof CertificateRoute
+  CheatsheetRoute: typeof CheatsheetRoute
   HubRoute: typeof HubRoute
   LabRoute: typeof LabRoute
   MistakesRoute: typeof MistakesRoute
@@ -148,6 +161,13 @@ declare module '@tanstack/react-router' {
       path: '/certificate'
       fullPath: '/certificate'
       preLoaderRoute: typeof CertificateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cheatsheet': {
+      id: '/cheatsheet'
+      path: '/cheatsheet'
+      fullPath: '/cheatsheet'
+      preLoaderRoute: typeof CheatsheetRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/hub': {
@@ -198,6 +218,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CertificateRoute: CertificateRoute,
+  CheatsheetRoute: CheatsheetRoute,
   HubRoute: HubRoute,
   LabRoute: LabRoute,
   MistakesRoute: MistakesRoute,

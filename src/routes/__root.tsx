@@ -17,6 +17,7 @@ import {
   Award,
   Code2,
   Sparkles,
+  BookMarked,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -30,12 +31,12 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       {
-        title: "Three.js 实战学习 · 中文交互教程",
+        title: "Three.js 实战学习 v2 · 中文交互教程",
       },
       {
         name: "description",
         content:
-          "Three.js 中文交互式教程：讲解 / 3D Demo / 测验。从 Hello Cube 到迷你展厅。",
+          "Three.js 中文交互式教程 v2：讲解 / 3D Demo / 测验 / 工程进阶 / 速查表。",
       },
     ],
     links: [
@@ -76,6 +77,7 @@ function RootDocument({ children }: { children: ReactNode }) {
 const NAV_EXTRA = [
   { to: "/studio" as const, label: "场景工坊", icon: Sparkles },
   { to: "/playground" as const, label: "代码沙盒", icon: Code2 },
+  { to: "/cheatsheet" as const, label: "速查表", icon: BookMarked },
   { to: "/hub" as const, label: "学习中心", icon: LayoutDashboard },
   { to: "/lab" as const, label: "练习场", icon: FlaskConical },
   { to: "/mistakes" as const, label: "错题本", icon: BookX },
@@ -118,7 +120,7 @@ function AppShell({ children }: { children: ReactNode }) {
               Three.js 实战学习
             </span>
             <span className="hidden rounded-full bg-surface-3 px-1.5 py-0.5 font-mono text-[10px] text-primary sm:inline">
-              v1
+              v2
             </span>
           </Link>
 
@@ -218,6 +220,9 @@ function AppShell({ children }: { children: ReactNode }) {
                         ) : null}
                         {lesson.track === "实战" ? (
                           <span className="text-[10px] text-primary">实战</span>
+                        ) : null}
+                        {lesson.track === "工程进阶" ? (
+                          <span className="text-[10px] text-warn">工程进阶</span>
                         ) : null}
                       </span>
                     </Link>

@@ -22,7 +22,15 @@ export type DemoKind =
   | "loaders"
   | "scene-graph"
   | "postfx"
-  | "project";
+  | "project"
+  | "fog"
+  | "helpers"
+  | "instancing"
+  | "dispose"
+  | "colorspace"
+  | "performance"
+  | "r3f"
+  | "capstone";
 
 export type LessonBlock =
   | { type: "text"; title?: string; body: string }
@@ -36,7 +44,7 @@ export type Lesson = {
   title: string;
   summary: string;
   level: "入门" | "进阶" | "实战";
-  track: "基础" | "进阶" | "实战";
+  track: "基础" | "进阶" | "实战" | "工程进阶";
   minutes: number;
   blocks: LessonBlock[];
 };
@@ -947,9 +955,469 @@ window.addEventListener('resize', onResize)`,
       },
     ],
   },
+  // —— v2 工程进阶 ——
+  {
+    slug: "fog",
+    title: "雾效与氛围 Fog",
+    summary: "Fog / FogExp2 营造景深与体积感。",
+    level: "进阶",
+    track: "工程进阶",
+    minutes: 8,
+    blocks: [
+      {
+        type: "text",
+        title: "为什么要雾",
+        body: "雾能把远景「化开」，既省性能（远物细节不重要），又增加电影感。背景色最好与 fog 颜色一致。",
+      },
+      {
+        type: "code",
+        title: "线性雾",
+        lang: "ts",
+        code: `scene.background = new THREE.Color(0x0a0c10)
+scene.fog = new THREE.Fog(0x0a0c10, 4, 18)
+// 或指数雾：new THREE.FogExp2(0x0a0c10, 0.08)`,
+      },
+      {
+        type: "demo",
+        kind: "fog",
+        title: "动手：调节雾浓度",
+      },
+      {
+        type: "quiz",
+        questions: [
+          {
+            id: "f1",
+            question: "Fog 的 near/far 表示？",
+            options: ["灯光范围", "雾开始/完全覆盖的距离", "贴图 UV", "阴影分辨率"],
+            answer: 1,
+            explain: "线性雾在 near 开始，far 处完全被雾盖住。",
+          },
+          {
+            id: "f2",
+            question: "背景色与 fog 颜色不一致会？",
+            options: ["更快", "边缘出现色带/割裂感", "自动修复", "禁用阴影"],
+            answer: 1,
+            explain: "通常让 background ≈ fog.color。",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "helpers",
+    title: "调试助手 Helpers",
+    summary: "Axes / Grid / LightHelper，以及相机辅助。",
+    level: "进阶",
+    track: "工程进阶",
+    minutes: 8,
+    blocks: [
+      {
+        type: "text",
+        title: "开发期可视化",
+        body: "AxesHelper、GridHelper、DirectionalLightHelper、CameraHelper 能快速暴露坐标系与灯光方向问题。上线前记得移除。",
+      },
+      {
+        type: "code",
+        title: "常用 helper",
+        lang: "ts",
+        code: `scene.add(new THREE.AxesHelper(2))
+scene.add(new THREE.GridHelper(10, 20))
+const h = new THREE.DirectionalLightHelper(dirLight, 0.5)
+scene.add(h)`,
+      },
+      {
+        type: "demo",
+        kind: "helpers",
+        title: "动手：开关辅助线",
+      },
+      {
+        type: "quiz",
+        questions: [
+          {
+            id: "h1",
+            question: "AxesHelper 红绿蓝轴通常对应？",
+            options: ["RGB 灯光", "X / Y / Z", "UV / W", "FOV"],
+            answer: 1,
+            explain: "X 红、Y 绿、Z 蓝。",
+          },
+          {
+            id: "h2",
+            question: "生产环境 helper？",
+            options: ["必须保留", "开发用，上线移除", "替代材质", "自动优化"],
+            answer: 1,
+            explain: "避免多余 draw call 与视觉干扰。",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "instancing",
+    title: "实例化 InstancedMesh",
+    summary: "用一次绘制渲染成千上万相同物体。",
+    level: "进阶",
+    track: "工程进阶",
+    minutes: 12,
+    blocks: [
+      {
+        type: "text",
+        title: "为何需要实例化",
+        body: "每个 Mesh 都有绘制开销。InstancedMesh 共享几何与材质，只变每个实例的矩阵/颜色，适合森林、人群、粒子块。",
+      },
+      {
+        type: "code",
+        title: "InstancedMesh 骨架",
+        lang: "ts",
+        code: `const mesh = new THREE.InstancedMesh(geo, mat, count)
+const dummy = new THREE.Object3D()
+for (let i = 0; i < count; i++) {
+  dummy.position.set(...)
+  dummy.updateMatrix()
+  mesh.setMatrixAt(i, dummy.matrix)
+}
+mesh.instanceMatrix.needsUpdate = true
+scene.add(mesh)`,
+      },
+      {
+        type: "demo",
+        kind: "instancing",
+        title: "动手：千个方块实例",
+      },
+      {
+        type: "quiz",
+        questions: [
+          {
+            id: "in1",
+            question: "InstancedMesh 优势？",
+            options: ["自动物理", "大幅减少 draw call", "更高分辨率贴图", "无需灯光"],
+            answer: 1,
+            explain: "一批实例一次绘制。",
+          },
+          {
+            id: "in2",
+            question: "改矩阵后需要？",
+            options: ["重启浏览器", "instanceMatrix.needsUpdate = true", "删掉场景", "换相机"],
+            answer: 1,
+            explain: "通知 GPU 上传新矩阵。",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "dispose",
+    title: "资源释放与泄漏",
+    summary: "geometry / material / texture dispose，取消 rAF。",
+    level: "进阶",
+    track: "工程进阶",
+    minutes: 10,
+    blocks: [
+      {
+        type: "text",
+        title: "GPU 不会自动 GC",
+        body: "JS 对象被回收 ≠ GPU 缓冲释放。路由切换、反复创建场景时必须 dispose，并 cancelAnimationFrame。",
+      },
+      {
+        type: "code",
+        title: "清理模板",
+        lang: "ts",
+        code: `function disposeObject(obj: THREE.Object3D) {
+  obj.traverse((child) => {
+    const m = child as THREE.Mesh
+    m.geometry?.dispose()
+    const mat = m.material
+    if (!mat) return
+    for (const x of Array.isArray(mat) ? mat : [mat]) {
+      // dispose maps...
+      x.dispose()
+    }
+  })
+}
+cancelAnimationFrame(raf)
+renderer.dispose()`,
+      },
+      {
+        type: "demo",
+        kind: "dispose",
+        title: "动手：创建 / 销毁场景",
+        hint: "反复点「重建」模拟路由切换；观察不会卡死。",
+      },
+      {
+        type: "quiz",
+        questions: [
+          {
+            id: "d1",
+            question: "只把 mesh 从 scene 移除够吗？",
+            options: ["够了", "不够，还需 dispose GPU 资源", "自动完成", "只删相机"],
+            answer: 1,
+            explain: "移除 ≠ 释放 GPU 内存。",
+          },
+          {
+            id: "d2",
+            question: "离开页时还要？",
+            options: ["忽略", "cancelAnimationFrame + renderer.dispose", "强制 reload", "清空 localStorage"],
+            answer: 1,
+            explain: "停掉循环并释放渲染器。",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "color-space",
+    title: "色彩管理",
+    summary: "outputColorSpace、贴图 colorSpace、tone mapping。",
+    level: "进阶",
+    track: "工程进阶",
+    minutes: 10,
+    blocks: [
+      {
+        type: "text",
+        title: "为什么颜色发灰/过曝",
+        body: "r152+ 默认线性工作流。颜色贴图用 SRGBColorSpace；渲染输出 renderer.outputColorSpace = SRGBColorSpace；可用 toneMapping 控制高光。",
+      },
+      {
+        type: "code",
+        title: "现代色彩设置",
+        lang: "ts",
+        code: `renderer.outputColorSpace = THREE.SRGBColorSpace
+renderer.toneMapping = THREE.ACESFilmicToneMapping
+renderer.toneMappingExposure = 1.0
+map.colorSpace = THREE.SRGBColorSpace`,
+      },
+      {
+        type: "demo",
+        kind: "colorspace",
+        title: "动手：曝光与色调映射",
+      },
+      {
+        type: "quiz",
+        questions: [
+          {
+            id: "cs1",
+            question: "颜色贴图应设？",
+            options: ["Linear", "SRGBColorSpace", "HSV", "不设置永远对"],
+            answer: 1,
+            explain: "颜色数据是 sRGB 编码。",
+          },
+          {
+            id: "cs2",
+            question: "toneMapping 作用？",
+            options: ["改几何", "把 HDR 映射到可显示范围", "加载模型", "开阴影"],
+            answer: 1,
+            explain: "控制亮度曲线与观感。",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "performance",
+    title: "性能优化清单",
+    summary: "draw call、像素比、阴影、共享材质、剔除。",
+    level: "实战",
+    track: "工程进阶",
+    minutes: 12,
+    blocks: [
+      {
+        type: "text",
+        title: "优先优化项",
+        body: "1. 限制 pixelRatio ≤ 2\n2. 合并/实例化相同物体\n3. 阴影 mapSize 适中\n4. 共享 geometry/material\n5. 视锥外自动剔除（默认）\n6. 少用实时后处理",
+      },
+      {
+        type: "code",
+        title: "快速配置",
+        lang: "ts",
+        code: `renderer.setPixelRatio(Math.min(devicePixelRatio, 2))
+renderer.shadowMap.enabled = true
+// 阴影 512~1024 通常够用
+// 同材质多物体 → InstancedMesh 或 merge`,
+      },
+      {
+        type: "demo",
+        kind: "performance",
+        title: "动手：像素比与物体数量",
+        hint: "拉高数量/像素比，感受帧时间压力（本 demo 显示估算负载）。",
+      },
+      {
+        type: "quiz",
+        questions: [
+          {
+            id: "pf1",
+            question: "移动端 pixelRatio 建议？",
+            options: ["无限", "通常 cap 到 1.5~2", "必须 4", "设为 0"],
+            answer: 1,
+            explain: "像素翻倍填充率压力巨大。",
+          },
+          {
+            id: "pf2",
+            question: "相同树木 500 棵优先？",
+            options: ["500 个 Mesh", "InstancedMesh", "500 个 Scene", "关掉相机"],
+            answer: 1,
+            explain: "实例化是标准解法。",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "r3f-map",
+    title: "对照：React Three Fiber",
+    summary: "命令式 Three → 声明式 R3F 的心智映射。",
+    level: "实战",
+    track: "工程进阶",
+    minutes: 12,
+    blocks: [
+      {
+        type: "text",
+        title: "为何还要学原生 Three",
+        body: "R3F 是 Three 的 React 渲染器。不会 Three 就只会「抄组件」；会 Three 才能读懂源码、写自定义 shader、排障。",
+      },
+      {
+        type: "code",
+        title: "对照写法",
+        lang: "tsx",
+        code: `// 原生
+const mesh = new THREE.Mesh(geo, mat)
+scene.add(mesh)
+mesh.rotation.y += dt
+
+// R3F
+<mesh rotation-y={y}>
+  <boxGeometry />
+  <meshStandardMaterial color="#049ef4" />
+</mesh>`,
+      },
+      {
+        type: "demo",
+        kind: "r3f",
+        title: "动手：同一场景的「声明式」对照",
+        hint: "左侧概念是 R3F 组件树，右侧仍是原生 Three 渲染（本站不强制装 R3F）。",
+      },
+      {
+        type: "tip",
+        body: "学完本站后，再装 @react-three/fiber + drei，会非常顺。",
+      },
+      {
+        type: "quiz",
+        questions: [
+          {
+            id: "rf1",
+            question: "R3F 本质是？",
+            options: ["新 3D 引擎", "Three.js 的 React 渲染器", "CSS 3D", "Blender 插件"],
+            answer: 1,
+            explain: "底层还是 three。",
+          },
+          {
+            id: "rf2",
+            question: "原生 Three 的 scene.add 对应 R3F？",
+            options: ["useState", "JSX 树嵌套 / Canvas 子节点", "redux", "iframe"],
+            answer: 1,
+            explain: "父子关系用组件树表达。",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "pitfalls",
+    title: "常见坑速查",
+    summary: "黑屏、拉伸、不更新、灯光全黑、路径 base。",
+    level: "实战",
+    track: "工程进阶",
+    minutes: 10,
+    blocks: [
+      {
+        type: "text",
+        title: "黑屏 checklist",
+        body: "1. 相机是否在物体内部/背后\n2. 有没有灯（Standard 材质）\n3. 有没有 render 循环\n4. canvas 尺寸是否为 0\n5. near/far 是否裁掉\n6. 材质颜色是否纯黑",
+      },
+      {
+        type: "code",
+        title: "GitHub Pages base",
+        lang: "ts",
+        code: `// vite.config.ts
+base: '/learning-threejs/'
+// 资源与路由都要带 base，否则 Pages 上 404`,
+      },
+      {
+        type: "demo",
+        kind: "helpers",
+        title: "用 helper 定位坐标系问题",
+      },
+      {
+        type: "quiz",
+        questions: [
+          {
+            id: "pt1",
+            question: "Standard 材质全黑常见原因？",
+            options: ["没加灯光", "相机太远一定黑", "必须用 Basic", "Fog 强制"],
+            answer: 0,
+            explain: "PBR 材质依赖光照。",
+          },
+          {
+            id: "pt2",
+            question: "画面被拉扁？",
+            options: ["换浏览器", "更新 camera.aspect + setSize", "删 fog", "关抗锯齿"],
+            answer: 1,
+            explain: "aspect 与画布不一致。",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    slug: "capstone",
+    title: "毕业作品清单",
+    summary: "可展示的 Three.js 作品验收标准。",
+    level: "实战",
+    track: "工程进阶",
+    minutes: 10,
+    blocks: [
+      {
+        type: "text",
+        title: "验收清单",
+        body: "[ ] 有明确主题（展厅 / 产品 / 小游戏）\n[ ] 相机与构图舒服\n[ ] 至少 PBR + 灯光 + 阴影或氛围\n[ ] 一种交互（拾取 / 控制 / 动画）\n[ ] resize 正常\n[ ] 离开页 dispose\n[ ] README 写清操作方式\n[ ] 部署（Pages / Vercel）",
+      },
+      {
+        type: "demo",
+        kind: "capstone",
+        title: "动手：作品预检场景",
+        hint: "综合灯光、阴影、雾、拾取——当作作品骨架。",
+      },
+      {
+        type: "tip",
+        body: "作品 > 证书。把场景工坊调参结果抄进自己的仓库更有说服力。",
+      },
+      {
+        type: "quiz",
+        questions: [
+          {
+            id: "cp1",
+            question: "作品最少应证明你会？",
+            options: [
+              "只会截图",
+              "场景搭建 + 灯光材质 + 交互 + 工程清理",
+              "只会改颜色",
+              "只会用 CDN 示例",
+            ],
+            answer: 1,
+            explain: "覆盖渲染管线与工程素养。",
+          },
+          {
+            id: "cp2",
+            question: "部署后资源 404 优先查？",
+            options: ["天气", "base 路径与资源引用", "CPU 型号", "npm 版本 alone"],
+            answer: 1,
+            explain: "Pages 子路径最容易踩坑。",
+          },
+        ],
+      },
+    ],
+  },
 ];
 
-export const TRACKS = ["基础", "进阶", "实战"] as const;
+export const TRACKS = ["基础", "进阶", "实战", "工程进阶"] as const;
 
 export function getLesson(slug: string): Lesson | undefined {
   return LESSONS.find((l) => l.slug === slug);
@@ -995,3 +1463,43 @@ export function getAllQuizQuestions(): Array<
   }
   return out;
 }
+
+/** 速查表条目 */
+export const CHEATSHEET: { title: string; items: { k: string; v: string }[] }[] = [
+  {
+    title: "最小闭环",
+    items: [
+      { k: "Scene", v: "容器，装一切" },
+      { k: "Camera", v: "从哪看" },
+      { k: "Renderer", v: "画到 canvas" },
+      { k: "Mesh", v: "Geometry + Material" },
+    ],
+  },
+  {
+    title: "材质速记",
+    items: [
+      { k: "Basic", v: "不受光" },
+      { k: "Lambert", v: "漫反射" },
+      { k: "Phong", v: "高光" },
+      { k: "Standard", v: "PBR 默认" },
+    ],
+  },
+  {
+    title: "灯光",
+    items: [
+      { k: "Ambient", v: "整体提亮" },
+      { k: "Directional", v: "太阳/平行光" },
+      { k: "Point", v: "灯泡" },
+      { k: "Spot", v: "手电筒" },
+    ],
+  },
+  {
+    title: "工程必做",
+    items: [
+      { k: "pixelRatio", v: "Math.min(dpr, 2)" },
+      { k: "resize", v: "aspect + setSize" },
+      { k: "dispose", v: "geo/mat/tex + cancel rAF" },
+      { k: "colorSpace", v: "输出 sRGB，颜色贴图 sRGB" },
+    ],
+  },
+];

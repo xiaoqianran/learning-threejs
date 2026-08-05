@@ -98,6 +98,59 @@ return (dt) => {
   points.rotation.y += dt * 0.08
 }`,
   },
+  {
+    id: "fog",
+    title: "雾中方阵",
+    code: `const bg = 0x0a0c10
+scene.background = new THREE.Color(bg)
+scene.fog = new THREE.Fog(bg, 3, 14)
+camera.position.set(0, 2.5, 8)
+scene.add(new THREE.AmbientLight(0xffffff, 0.4))
+const d = new THREE.DirectionalLight(0xffffff, 1)
+d.position.set(3, 5, 2)
+scene.add(d)
+for (let i = 0; i < 16; i++) {
+  const m = new THREE.Mesh(
+    new THREE.BoxGeometry(0.7, 0.7, 0.7),
+    new THREE.MeshStandardMaterial({ color: 0x049ef4 }),
+  )
+  m.position.set((i % 4) * 1.4 - 2.1, 0.35, -Math.floor(i / 4) * 1.6)
+  scene.add(m)
+}
+const controls = new OrbitControls(camera, renderer.domElement)
+controls.enableDamping = true
+return () => controls.update()`,
+  },
+  {
+    id: "instances",
+    title: "InstancedMesh",
+    code: `scene.background = new THREE.Color(0x0a0c10)
+camera.position.set(0, 5, 9)
+const count = 300
+const mesh = new THREE.InstancedMesh(
+  new THREE.BoxGeometry(0.3, 0.3, 0.3),
+  new THREE.MeshStandardMaterial({ color: 0x6e63ff }),
+  count,
+)
+const dummy = new THREE.Object3D()
+for (let i = 0; i < count; i++) {
+  dummy.position.set((i % 15) - 7, 0, Math.floor(i / 15) - 10)
+  dummy.position.y = Math.sin(i * 0.3) * 0.4
+  dummy.updateMatrix()
+  mesh.setMatrixAt(i, dummy.matrix)
+}
+scene.add(mesh)
+scene.add(new THREE.AmbientLight(0xffffff, 0.5))
+const d = new THREE.DirectionalLight(0xffffff, 1)
+d.position.set(4, 6, 2)
+scene.add(d)
+const controls = new OrbitControls(camera, renderer.domElement)
+controls.enableDamping = true
+return (dt) => {
+  mesh.rotation.y += dt * 0.2
+  controls.update()
+}`,
+  },
 ];
 
 function PlaygroundPage() {

@@ -71,6 +71,22 @@ function DemoBody({ kind }: { kind: DemoKind }) {
       return <PostFxDemo />;
     case "project":
       return <ProjectDemo />;
+    case "fog":
+      return <FogDemo />;
+    case "helpers":
+      return <HelpersDemo />;
+    case "instancing":
+      return <InstancingDemo />;
+    case "dispose":
+      return <DisposeDemo />;
+    case "colorspace":
+      return <ColorSpaceDemo />;
+    case "performance":
+      return <PerformanceDemo />;
+    case "r3f":
+      return <R3fDemo />;
+    case "capstone":
+      return <CapstoneDemo />;
     default:
       return null;
   }
@@ -129,9 +145,7 @@ function HelloCubeDemo() {
           new THREE.MeshNormalMaterial(),
         );
         scene.add(mesh);
-        const light = new THREE.AmbientLight(0xffffff, 0.5);
-        scene.add(light);
-        return () => {};
+        scene.add(new THREE.AmbientLight(0xffffff, 0.5));
       }}
       onFrame={({ scene }, dt) => {
         const mesh = scene.children.find((c) => (c as THREE.Mesh).isMesh) as
@@ -166,8 +180,7 @@ function SceneSetupDemo() {
           apiRef.current = api;
           api.scene.background = new THREE.Color(0x0a0c10);
           api.camera.position.set(0, 1.2, camZ);
-          const grid = new THREE.GridHelper(8, 16, 0x049ef4, 0x2a3344);
-          api.scene.add(grid);
+          api.scene.add(new THREE.GridHelper(8, 16, 0x049ef4, 0x2a3344));
           const mesh = new THREE.Mesh(
             new THREE.BoxGeometry(1, 1, 1),
             new THREE.MeshStandardMaterial({ color: 0x049ef4 }),
@@ -271,8 +284,7 @@ function MaterialsDemo() {
             roughness,
           });
           matRef.current = mat;
-          const mesh = new THREE.Mesh(new THREE.SphereGeometry(0.9, 48, 48), mat);
-          scene.add(mesh);
+          scene.add(new THREE.Mesh(new THREE.SphereGeometry(0.9, 48, 48), mat));
           scene.add(new THREE.AmbientLight(0xffffff, 0.25));
           const key = new THREE.DirectionalLight(0xffffff, 1.4);
           key.position.set(4, 3, 2);
@@ -317,7 +329,11 @@ function LightsDemo() {
           camera.position.set(2.5, 2, 3.5);
           const mesh = new THREE.Mesh(
             new THREE.TorusKnotGeometry(0.55, 0.18, 128, 24),
-            new THREE.MeshStandardMaterial({ color: 0xdddddd, metalness: 0.6, roughness: 0.25 }),
+            new THREE.MeshStandardMaterial({
+              color: 0xdddddd,
+              metalness: 0.6,
+              roughness: 0.25,
+            }),
           );
           scene.add(mesh);
           const a = new THREE.AmbientLight(0xffffff, ambient);
@@ -325,8 +341,7 @@ function LightsDemo() {
           d.position.set(3, 4, 2);
           scene.add(a, d);
           lightsRef.current = { a, d };
-          const helper = new THREE.DirectionalLightHelper(d, 0.5);
-          scene.add(helper);
+          scene.add(new THREE.DirectionalLightHelper(d, 0.5));
         }}
         onFrame={({ scene }, dt) => {
           const m = scene.children.find((c) => (c as THREE.Mesh).isMesh) as
@@ -425,8 +440,7 @@ function TextureDemo() {
           const map = makeCheckerTexture(repeat);
           const mat = new THREE.MeshStandardMaterial({ map, roughness: 0.5 });
           matRef.current = mat;
-          const mesh = new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.4, 1.4), mat);
-          scene.add(mesh);
+          scene.add(new THREE.Mesh(new THREE.BoxGeometry(1.4, 1.4, 1.4), mat));
           scene.add(new THREE.AmbientLight(0xffffff, 0.5));
           const d = new THREE.DirectionalLight(0xffffff, 1.1);
           d.position.set(3, 4, 2);
@@ -468,11 +482,8 @@ function OrbitDemo() {
         d.position.set(4, 5, 2);
         scene.add(d);
         scene.add(new THREE.GridHelper(8, 16, 0x2a3344, 0x1a2230));
-
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
-        controls.target.set(0, 0, 0);
-
         let raf = 0;
         let dead = false;
         const tick = () => {
@@ -506,7 +517,11 @@ function AnimationDemo() {
           camera.position.set(2.5, 1.5, 3);
           const mesh = new THREE.Mesh(
             new THREE.TorusGeometry(0.7, 0.25, 16, 48),
-            new THREE.MeshStandardMaterial({ color: 0x6e63ff, metalness: 0.5, roughness: 0.3 }),
+            new THREE.MeshStandardMaterial({
+              color: 0x6e63ff,
+              metalness: 0.5,
+              roughness: 0.3,
+            }),
           );
           mesh.name = "torus";
           scene.add(mesh);
@@ -544,7 +559,6 @@ function RaycastDemo() {
           const d = new THREE.DirectionalLight(0xffffff, 1);
           d.position.set(3, 5, 2);
           scene.add(d);
-
           const meshes: THREE.Mesh[] = [];
           const colors = [0x049ef4, 0x6e63ff, 0xe0b06a];
           const names = ["蓝方块", "紫方块", "金方块"];
@@ -555,15 +569,12 @@ function RaycastDemo() {
             );
             m.position.set((i - 1) * 1.6, 0.5, 0);
             m.name = names[i]!;
-            m.userData.baseColor = colors[i];
             scene.add(m);
             meshes.push(m);
           }
           scene.add(new THREE.GridHelper(8, 16, 0x2a3344, 0x1a2230));
-
           const raycaster = new THREE.Raycaster();
           const pointer = new THREE.Vector2();
-
           const onClick = (e: PointerEvent) => {
             const rect = canvas.getBoundingClientRect();
             pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
@@ -577,9 +588,7 @@ function RaycastDemo() {
               const obj = hits[0].object as THREE.Mesh;
               (obj.material as THREE.MeshStandardMaterial).emissive.setHex(0x224466);
               setPicked(`选中：${obj.name}`);
-            } else {
-              setPicked("未点中物体");
-            }
+            } else setPicked("未点中物体");
           };
           canvas.addEventListener("pointerdown", onClick);
           return () => canvas.removeEventListener("pointerdown", onClick);
@@ -599,7 +608,6 @@ function ShadowsDemo() {
         camera.lookAt(0, 0.5, 0);
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
         const ground = new THREE.Mesh(
           new THREE.PlaneGeometry(10, 10),
           new THREE.MeshStandardMaterial({ color: 0x1a2230, roughness: 0.9 }),
@@ -607,15 +615,17 @@ function ShadowsDemo() {
         ground.rotation.x = -Math.PI / 2;
         ground.receiveShadow = true;
         scene.add(ground);
-
         const ball = new THREE.Mesh(
           new THREE.SphereGeometry(0.6, 32, 32),
-          new THREE.MeshStandardMaterial({ color: 0x049ef4, metalness: 0.2, roughness: 0.3 }),
+          new THREE.MeshStandardMaterial({
+            color: 0x049ef4,
+            metalness: 0.2,
+            roughness: 0.3,
+          }),
         );
         ball.position.set(0, 0.6, 0);
         ball.castShadow = true;
         scene.add(ball);
-
         const box = new THREE.Mesh(
           new THREE.BoxGeometry(0.8, 0.8, 0.8),
           new THREE.MeshStandardMaterial({ color: 0x6e63ff }),
@@ -623,7 +633,6 @@ function ShadowsDemo() {
         box.position.set(1.4, 0.4, -0.4);
         box.castShadow = true;
         scene.add(box);
-
         scene.add(new THREE.AmbientLight(0xffffff, 0.25));
         const light = new THREE.DirectionalLight(0xffffff, 1.4);
         light.position.set(4, 6, 2);
@@ -631,13 +640,14 @@ function ShadowsDemo() {
         light.shadow.mapSize.set(1024, 1024);
         scene.add(light);
       }}
-      onFrame={({ scene }, dt) => {
+      onFrame={({ scene }) => {
         const ball = scene.children.find(
-          (c) => (c as THREE.Mesh).isMesh && (c as THREE.Mesh).geometry.type === "SphereGeometry",
+          (c) =>
+            (c as THREE.Mesh).isMesh &&
+            (c as THREE.Mesh).geometry.type === "SphereGeometry",
         ) as THREE.Mesh | undefined;
         if (ball) {
           ball.position.y = 0.6 + Math.abs(Math.sin(performance.now() * 0.002)) * 0.8;
-          void dt;
         }
       }}
     />
@@ -646,7 +656,6 @@ function ShadowsDemo() {
 
 function ParticlesDemo() {
   const pointsRef = useRef<THREE.Points | null>(null);
-
   return (
     <ThreeCanvas
       onReady={({ scene, camera }) => {
@@ -687,7 +696,6 @@ function ParticlesDemo() {
 function LoadersDemo() {
   const [status, setStatus] = useState("点击加载「模型」");
   const groupRef = useRef<THREE.Group | null>(null);
-
   return (
     <>
       <ThreeCanvas
@@ -717,18 +725,23 @@ function LoadersDemo() {
             window.setTimeout(() => {
               const g = groupRef.current;
               if (!g) return;
-              while (g.children.length) {
-                const c = g.children[0]!;
-                g.remove(c);
-              }
+              while (g.children.length) g.remove(g.children[0]!);
               const body = new THREE.Mesh(
                 new THREE.BoxGeometry(1, 0.6, 1.4),
-                new THREE.MeshStandardMaterial({ color: 0x049ef4, metalness: 0.4, roughness: 0.35 }),
+                new THREE.MeshStandardMaterial({
+                  color: 0x049ef4,
+                  metalness: 0.4,
+                  roughness: 0.35,
+                }),
               );
               body.position.y = 0.5;
               const cabin = new THREE.Mesh(
                 new THREE.BoxGeometry(0.7, 0.45, 0.7),
-                new THREE.MeshStandardMaterial({ color: 0xc8d4e0, metalness: 0.1, roughness: 0.2 }),
+                new THREE.MeshStandardMaterial({
+                  color: 0xc8d4e0,
+                  metalness: 0.1,
+                  roughness: 0.2,
+                }),
               );
               cabin.position.set(0, 0.95, -0.15);
               g.add(body, cabin);
@@ -751,13 +764,11 @@ function SceneGraphDemo() {
         scene.background = new THREE.Color(0x05070c);
         camera.position.set(0, 4, 7);
         camera.lookAt(0, 0, 0);
-
         const sun = new THREE.Mesh(
           new THREE.SphereGeometry(0.5, 32, 32),
           new THREE.MeshBasicMaterial({ color: 0xffcc66 }),
         );
         scene.add(sun);
-
         const earthOrbit = new THREE.Group();
         scene.add(earthOrbit);
         const earth = new THREE.Mesh(
@@ -766,7 +777,6 @@ function SceneGraphDemo() {
         );
         earth.position.x = 2.2;
         earthOrbit.add(earth);
-
         const moonOrbit = new THREE.Group();
         earth.add(moonOrbit);
         const moon = new THREE.Mesh(
@@ -775,14 +785,14 @@ function SceneGraphDemo() {
         );
         moon.position.x = 0.55;
         moonOrbit.add(moon);
-
         scene.add(new THREE.AmbientLight(0xffffff, 0.35));
         const d = new THREE.DirectionalLight(0xffffff, 1);
         d.position.set(3, 5, 2);
         scene.add(d);
-
-        const orbits = { earthOrbit, moonOrbit };
-        (scene as THREE.Scene & { userData: typeof orbits }).userData = orbits;
+        (scene as THREE.Scene & { userData: object }).userData = {
+          earthOrbit,
+          moonOrbit,
+        };
       }}
       onFrame={({ scene }, dt) => {
         const u = scene.userData as {
@@ -800,7 +810,6 @@ function PostFxDemo() {
   const [bloom, setBloom] = useState(0.6);
   const bloomRef = useRef(bloom);
   bloomRef.current = bloom;
-
   return (
     <>
       <ThreeCanvas
@@ -823,16 +832,10 @@ function PostFxDemo() {
           const d = new THREE.DirectionalLight(0xffffff, 0.8);
           d.position.set(2, 3, 2);
           scene.add(d);
-
-          // Lightweight "bloom-like" pass: render bright additive ghost
           const ghost = mesh.clone();
           ghost.material = (mesh.material as THREE.MeshStandardMaterial).clone();
           (ghost.material as THREE.MeshStandardMaterial).transparent = true;
-          (ghost.material as THREE.MeshStandardMaterial).opacity = 0.35;
-          (ghost.material as THREE.MeshStandardMaterial).emissiveIntensity = 1.2;
-          ghost.scale.setScalar(1.08);
           scene.add(ghost);
-
           let raf = 0;
           let dead = false;
           const tick = () => {
@@ -844,7 +847,8 @@ function PostFxDemo() {
             const b = bloomRef.current;
             ghost.scale.setScalar(1 + b * 0.25);
             (ghost.material as THREE.MeshStandardMaterial).opacity = 0.15 + b * 0.4;
-            (mesh.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.3 + b * 0.9;
+            (mesh.material as THREE.MeshStandardMaterial).emissiveIntensity =
+              0.3 + b * 0.9;
             renderer.render(scene, camera);
           };
           tick();
@@ -863,7 +867,6 @@ function PostFxDemo() {
 
 function ProjectDemo() {
   const [info, setInfo] = useState("拖拽环视 · 点击展品");
-
   return (
     <>
       <ThreeCanvas
@@ -872,8 +875,7 @@ function ProjectDemo() {
           scene.background = new THREE.Color(0x0a0c10);
           scene.fog = new THREE.Fog(0x0a0c10, 8, 22);
           camera.position.set(4, 2.5, 6);
-
-          // Floor
+          renderer.shadowMap.enabled = true;
           const floor = new THREE.Mesh(
             new THREE.CircleGeometry(6, 48),
             new THREE.MeshStandardMaterial({ color: 0x161b24, roughness: 0.85 }),
@@ -881,8 +883,6 @@ function ProjectDemo() {
           floor.rotation.x = -Math.PI / 2;
           floor.receiveShadow = true;
           scene.add(floor);
-
-          // Pedestals + exhibits
           const exhibits: THREE.Object3D[] = [];
           const items = [
             {
@@ -904,8 +904,6 @@ function ProjectDemo() {
               x: 1.8,
             },
           ];
-
-          renderer.shadowMap.enabled = true;
           for (const item of items) {
             const pedestal = new THREE.Mesh(
               new THREE.CylinderGeometry(0.45, 0.55, 0.5, 24),
@@ -915,7 +913,6 @@ function ProjectDemo() {
             pedestal.castShadow = true;
             pedestal.receiveShadow = true;
             scene.add(pedestal);
-
             const art = new THREE.Mesh(
               item.geo,
               new THREE.MeshStandardMaterial({
@@ -931,7 +928,6 @@ function ProjectDemo() {
             scene.add(art);
             exhibits.push(art);
           }
-
           scene.add(new THREE.AmbientLight(0xffffff, 0.3));
           const key = new THREE.DirectionalLight(0xffffff, 1.3);
           key.position.set(4, 8, 3);
@@ -941,14 +937,12 @@ function ProjectDemo() {
           const rim = new THREE.PointLight(0x6688ff, 0.6);
           rim.position.set(-3, 2, -2);
           scene.add(rim);
-
           const controls = new OrbitControls(camera, renderer.domElement);
           controls.enableDamping = true;
           controls.maxPolarAngle = Math.PI * 0.48;
           controls.minDistance = 3;
           controls.maxDistance = 12;
           controls.target.set(0, 0.8, 0);
-
           const raycaster = new THREE.Raycaster();
           const pointer = new THREE.Vector2();
           const onClick = (e: PointerEvent) => {
@@ -969,7 +963,6 @@ function ProjectDemo() {
             }
           };
           canvas.addEventListener("pointerdown", onClick);
-
           let raf = 0;
           let dead = false;
           const tick = () => {
@@ -980,7 +973,483 @@ function ProjectDemo() {
             renderer.render(scene, camera);
           };
           tick();
+          return () => {
+            dead = true;
+            cancelAnimationFrame(raf);
+            canvas.removeEventListener("pointerdown", onClick);
+            controls.dispose();
+          };
+        }}
+      />
+      <p className="mt-3 font-mono text-sm text-primary">{info}</p>
+    </>
+  );
+}
 
+function FogDemo() {
+  const [far, setFar] = useState(12);
+  const fogRef = useRef<THREE.Fog | null>(null);
+  useEffect(() => {
+    if (fogRef.current) fogRef.current.far = far;
+  }, [far]);
+  return (
+    <>
+      <ThreeCanvas
+        onReady={({ scene, camera }) => {
+          const bg = 0x0a0c10;
+          scene.background = new THREE.Color(bg);
+          const fog = new THREE.Fog(bg, 2, far);
+          fogRef.current = fog;
+          scene.fog = fog;
+          camera.position.set(0, 2, 8);
+          camera.lookAt(0, 0.5, 0);
+          scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+          const d = new THREE.DirectionalLight(0xffffff, 1);
+          d.position.set(3, 5, 2);
+          scene.add(d);
+          for (let i = 0; i < 12; i++) {
+            const m = new THREE.Mesh(
+              new THREE.BoxGeometry(0.8, 0.8, 0.8),
+              new THREE.MeshStandardMaterial({ color: 0x049ef4 }),
+            );
+            m.position.set((i % 4) * 1.5 - 2.25, 0.4, -Math.floor(i / 4) * 2.2);
+            scene.add(m);
+          }
+          scene.add(new THREE.GridHelper(20, 20, 0x2a3344, 0x1a2230));
+        }}
+      />
+      <Controls>
+        <SliderRow label="fog.far" value={far} min={4} max={24} step={0.5} onChange={setFar} />
+      </Controls>
+    </>
+  );
+}
+
+function HelpersDemo() {
+  const [showAxes, setShowAxes] = useState(true);
+  const [showGrid, setShowGrid] = useState(true);
+  const [showLight, setShowLight] = useState(true);
+  const refs = useRef<{
+    axes?: THREE.AxesHelper;
+    grid?: THREE.GridHelper;
+    lh?: THREE.DirectionalLightHelper;
+  }>({});
+
+  useEffect(() => {
+    if (refs.current.axes) refs.current.axes.visible = showAxes;
+    if (refs.current.grid) refs.current.grid.visible = showGrid;
+    if (refs.current.lh) refs.current.lh.visible = showLight;
+  }, [showAxes, showGrid, showLight]);
+
+  return (
+    <>
+      <ThreeCanvas
+        onReady={({ scene, camera }) => {
+          scene.background = new THREE.Color(0x0a0c10);
+          camera.position.set(3, 2.5, 4);
+          const mesh = new THREE.Mesh(
+            new THREE.BoxGeometry(1, 1, 1),
+            new THREE.MeshStandardMaterial({ color: 0x049ef4 }),
+          );
+          scene.add(mesh);
+          scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+          const d = new THREE.DirectionalLight(0xffffff, 1.1);
+          d.position.set(2, 3, 1);
+          scene.add(d);
+          const axes = new THREE.AxesHelper(2);
+          const grid = new THREE.GridHelper(8, 16, 0x049ef4, 0x2a3344);
+          const lh = new THREE.DirectionalLightHelper(d, 0.6);
+          scene.add(axes, grid, lh);
+          refs.current = { axes, grid, lh };
+        }}
+        onFrame={({ scene }, dt) => {
+          const m = scene.children.find((c) => (c as THREE.Mesh).isMesh) as
+            | THREE.Mesh
+            | undefined;
+          if (m) m.rotation.y += dt * 0.4;
+        }}
+      />
+      <div className="mt-3 flex flex-wrap gap-2">
+        {(
+          [
+            ["Axes", showAxes, setShowAxes],
+            ["Grid", showGrid, setShowGrid],
+            ["LightHelper", showLight, setShowLight],
+          ] as const
+        ).map(([label, on, set]) => (
+          <button
+            key={label}
+            type="button"
+            onClick={() => set(!on)}
+            className={cn(
+              "rounded-full px-3 py-1.5 text-xs font-medium",
+              on ? "bg-primary text-primary-fg" : "bg-surface-3 text-muted",
+            )}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function InstancingDemo() {
+  const [count, setCount] = useState(400);
+  const [seed, setSeed] = useState(0);
+  return (
+    <>
+      <ThreeCanvas
+        key={`${count}-${seed}`}
+        onReady={({ scene, camera }) => {
+          scene.background = new THREE.Color(0x0a0c10);
+          camera.position.set(0, 6, 10);
+          camera.lookAt(0, 0, 0);
+          const geo = new THREE.BoxGeometry(0.35, 0.35, 0.35);
+          const mat = new THREE.MeshStandardMaterial({
+            color: 0x049ef4,
+            metalness: 0.2,
+            roughness: 0.45,
+          });
+          const mesh = new THREE.InstancedMesh(geo, mat, count);
+          const dummy = new THREE.Object3D();
+          const color = new THREE.Color();
+          for (let i = 0; i < count; i++) {
+            const x = (i % 20) - 9.5;
+            const z = Math.floor(i / 20) - Math.floor(count / 40);
+            dummy.position.set(x * 0.55, Math.sin(i * 0.4) * 0.3, z * 0.55);
+            dummy.rotation.y = i * 0.1;
+            dummy.updateMatrix();
+            mesh.setMatrixAt(i, dummy.matrix);
+            color.setHSL((i / count) * 0.6 + 0.45, 0.7, 0.5);
+            mesh.setColorAt(i, color);
+          }
+          mesh.instanceMatrix.needsUpdate = true;
+          if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+          scene.add(mesh);
+          scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+          const d = new THREE.DirectionalLight(0xffffff, 1.1);
+          d.position.set(4, 8, 2);
+          scene.add(d);
+          (scene as THREE.Scene & { userData: { mesh: THREE.InstancedMesh } }).userData = {
+            mesh,
+          };
+        }}
+        onFrame={({ scene }, dt) => {
+          const mesh = (scene.userData as { mesh?: THREE.InstancedMesh }).mesh;
+          if (mesh) mesh.rotation.y += dt * 0.15;
+        }}
+      />
+      <Controls>
+        <SliderRow
+          label="实例数"
+          value={count}
+          min={50}
+          max={1200}
+          step={50}
+          onChange={(v) => {
+            setCount(v);
+            setSeed((s) => s + 1);
+          }}
+        />
+      </Controls>
+    </>
+  );
+}
+
+function DisposeDemo() {
+  const [builds, setBuilds] = useState(1);
+  const [log, setLog] = useState("点击重建：销毁旧场景并创建新场景");
+  return (
+    <>
+      <ThreeCanvas
+        key={builds}
+        onReady={({ scene, camera }) => {
+          scene.background = new THREE.Color(0x0a0c10);
+          camera.position.set(2.5, 1.8, 3.2);
+          const hue = (builds * 0.13) % 1;
+          const mesh = new THREE.Mesh(
+            new THREE.TorusKnotGeometry(0.55, 0.18, 100, 16),
+            new THREE.MeshStandardMaterial({
+              color: new THREE.Color().setHSL(hue, 0.7, 0.55),
+              metalness: 0.4,
+              roughness: 0.3,
+            }),
+          );
+          scene.add(mesh);
+          scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+          const d = new THREE.DirectionalLight(0xffffff, 1.2);
+          d.position.set(3, 4, 2);
+          scene.add(d);
+          setLog(`场景 #${builds} 已创建（卸载时 ThreeCanvas 会 dispose）`);
+        }}
+        onFrame={({ scene }, dt) => {
+          const m = scene.children.find((c) => (c as THREE.Mesh).isMesh) as
+            | THREE.Mesh
+            | undefined;
+          if (m) m.rotation.y += dt * 0.8;
+        }}
+      />
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-fg"
+          onClick={() => setBuilds((b) => b + 1)}
+        >
+          销毁并重建
+        </button>
+        <span className="text-sm text-muted">{log}</span>
+      </div>
+    </>
+  );
+}
+
+function ColorSpaceDemo() {
+  const [exposure, setExposure] = useState(1);
+  const [tone, setTone] = useState(true);
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+
+  useEffect(() => {
+    const r = rendererRef.current;
+    if (!r) return;
+    r.toneMappingExposure = exposure;
+    r.toneMapping = tone ? THREE.ACESFilmicToneMapping : THREE.NoToneMapping;
+  }, [exposure, tone]);
+
+  return (
+    <>
+      <ThreeCanvas
+        onReady={({ scene, camera, renderer }) => {
+          rendererRef.current = renderer;
+          renderer.outputColorSpace = THREE.SRGBColorSpace;
+          renderer.toneMapping = THREE.ACESFilmicToneMapping;
+          renderer.toneMappingExposure = exposure;
+          scene.background = new THREE.Color(0x0a0c10);
+          camera.position.set(2.4, 1.5, 2.8);
+          const mesh = new THREE.Mesh(
+            new THREE.SphereGeometry(0.9, 48, 48),
+            new THREE.MeshStandardMaterial({
+              color: 0xff8844,
+              metalness: 0.8,
+              roughness: 0.15,
+              emissive: 0x331100,
+              emissiveIntensity: 0.4,
+            }),
+          );
+          scene.add(mesh);
+          scene.add(new THREE.AmbientLight(0xffffff, 0.2));
+          const d = new THREE.DirectionalLight(0xffffff, 2.2);
+          d.position.set(3, 4, 2);
+          scene.add(d);
+        }}
+        onFrame={({ scene }, dt) => {
+          const m = scene.children.find((c) => (c as THREE.Mesh).isMesh) as
+            | THREE.Mesh
+            | undefined;
+          if (m) m.rotation.y += dt * 0.5;
+        }}
+      />
+      <Controls>
+        <SliderRow
+          label="toneMappingExposure"
+          value={exposure}
+          min={0.2}
+          max={2.5}
+          onChange={setExposure}
+        />
+        <label className="flex items-center gap-2 text-xs text-muted">
+          <input
+            type="checkbox"
+            checked={tone}
+            onChange={(e) => setTone(e.target.checked)}
+            className="accent-primary"
+          />
+          ACESFilmic tone mapping
+        </label>
+      </Controls>
+    </>
+  );
+}
+
+function PerformanceDemo() {
+  const [n, setN] = useState(50);
+  const [dprCap, setDprCap] = useState(2);
+  const load = Math.round(n * dprCap * dprCap);
+  return (
+    <>
+      <ThreeCanvas
+        key={`${n}-${dprCap}`}
+        onReady={({ scene, camera, renderer }) => {
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, dprCap));
+          scene.background = new THREE.Color(0x0a0c10);
+          camera.position.set(0, 3, 8);
+          camera.lookAt(0, 0, 0);
+          scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+          const d = new THREE.DirectionalLight(0xffffff, 1);
+          d.position.set(3, 5, 2);
+          scene.add(d);
+          const geo = new THREE.IcosahedronGeometry(0.25, 0);
+          const mat = new THREE.MeshStandardMaterial({ color: 0x6e63ff });
+          for (let i = 0; i < n; i++) {
+            const m = new THREE.Mesh(geo, mat);
+            m.position.set(
+              (Math.random() - 0.5) * 6,
+              (Math.random() - 0.5) * 3,
+              (Math.random() - 0.5) * 6,
+            );
+            scene.add(m);
+          }
+        }}
+        onFrame={({ scene }, dt) => {
+          scene.traverse((o) => {
+            if ((o as THREE.Mesh).isMesh) o.rotation.y += dt * 0.5;
+          });
+        }}
+      />
+      <Controls>
+        <SliderRow label="Mesh 数量" value={n} min={10} max={300} step={10} onChange={setN} />
+        <SliderRow
+          label="pixelRatio cap"
+          value={dprCap}
+          min={1}
+          max={3}
+          step={0.5}
+          onChange={setDprCap}
+        />
+      </Controls>
+      <p className="mt-2 font-mono text-xs text-muted">
+        估算负载指数 ≈ mesh × dpr² = {load}（仅教学用相对值）
+      </p>
+    </>
+  );
+}
+
+function R3fDemo() {
+  return (
+    <div className="grid gap-3 lg:grid-cols-2">
+      <div className="rounded-lg border border-border bg-code-bg p-3">
+        <p className="mb-2 font-mono text-[10px] uppercase text-subtle">R3F JSX 概念</p>
+        <pre className="overflow-x-auto font-mono text-[11px] leading-relaxed text-code-fg whitespace-pre">{`<Canvas>
+  <ambientLight intensity={0.4} />
+  <directionalLight position={[3,4,2]} />
+  <mesh>
+    <boxGeometry />
+    <meshStandardMaterial color="#049ef4" />
+  </mesh>
+  <OrbitControls />
+</Canvas>`}</pre>
+      </div>
+      <ThreeCanvas
+        autoRender={false}
+        onReady={({ scene, camera, renderer }) => {
+          scene.background = new THREE.Color(0x0a0c10);
+          camera.position.set(2.5, 1.8, 3);
+          const mesh = new THREE.Mesh(
+            new THREE.BoxGeometry(1, 1, 1),
+            new THREE.MeshStandardMaterial({ color: 0x049ef4 }),
+          );
+          scene.add(mesh);
+          scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+          const d = new THREE.DirectionalLight(0xffffff, 1.2);
+          d.position.set(3, 4, 2);
+          scene.add(d);
+          const controls = new OrbitControls(camera, renderer.domElement);
+          controls.enableDamping = true;
+          let raf = 0;
+          let dead = false;
+          const tick = () => {
+            if (dead) return;
+            raf = requestAnimationFrame(tick);
+            mesh.rotation.y += 0.01;
+            controls.update();
+            renderer.render(scene, camera);
+          };
+          tick();
+          return () => {
+            dead = true;
+            cancelAnimationFrame(raf);
+            controls.dispose();
+          };
+        }}
+      />
+    </div>
+  );
+}
+
+function CapstoneDemo() {
+  const [info, setInfo] = useState("综合预检：拖拽 · 点击");
+  return (
+    <>
+      <ThreeCanvas
+        autoRender={false}
+        onReady={({ scene, camera, renderer, canvas }) => {
+          const bg = 0x0a0c10;
+          scene.background = new THREE.Color(bg);
+          scene.fog = new THREE.Fog(bg, 6, 20);
+          camera.position.set(5, 3, 6);
+          renderer.shadowMap.enabled = true;
+          renderer.toneMapping = THREE.ACESFilmicToneMapping;
+          const ground = new THREE.Mesh(
+            new THREE.PlaneGeometry(16, 16),
+            new THREE.MeshStandardMaterial({ color: 0x141a22, roughness: 0.9 }),
+          );
+          ground.rotation.x = -Math.PI / 2;
+          ground.receiveShadow = true;
+          scene.add(ground);
+          const hero = new THREE.Mesh(
+            new THREE.TorusKnotGeometry(0.7, 0.22, 120, 18),
+            new THREE.MeshStandardMaterial({
+              color: 0x049ef4,
+              metalness: 0.55,
+              roughness: 0.25,
+            }),
+          );
+          hero.position.y = 1.1;
+          hero.castShadow = true;
+          hero.name = "主展体";
+          scene.add(hero);
+          for (let i = 0; i < 6; i++) {
+            const p = new THREE.Mesh(
+              new THREE.BoxGeometry(0.4, 0.4, 0.4),
+              new THREE.MeshStandardMaterial({ color: 0x6e63ff }),
+            );
+            const a = (i / 6) * Math.PI * 2;
+            p.position.set(Math.cos(a) * 2.4, 0.2, Math.sin(a) * 2.4);
+            p.castShadow = true;
+            p.name = `卫星块 ${i + 1}`;
+            scene.add(p);
+          }
+          scene.add(new THREE.AmbientLight(0xffffff, 0.28));
+          const key = new THREE.DirectionalLight(0xffffff, 1.35);
+          key.position.set(5, 8, 3);
+          key.castShadow = true;
+          key.shadow.mapSize.set(1024, 1024);
+          scene.add(key);
+          const controls = new OrbitControls(camera, renderer.domElement);
+          controls.enableDamping = true;
+          controls.target.set(0, 0.8, 0);
+          const raycaster = new THREE.Raycaster();
+          const pointer = new THREE.Vector2();
+          const pickables = scene.children.filter((c) => (c as THREE.Mesh).isMesh);
+          const onClick = (e: PointerEvent) => {
+            const rect = canvas.getBoundingClientRect();
+            pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+            raycaster.setFromCamera(pointer, camera);
+            const hits = raycaster.intersectObjects(pickables, false);
+            if (hits[0]) setInfo(`命中：${hits[0].object.name || "object"}`);
+          };
+          canvas.addEventListener("pointerdown", onClick);
+          let raf = 0;
+          let dead = false;
+          const tick = () => {
+            if (dead) return;
+            raf = requestAnimationFrame(tick);
+            hero.rotation.y += 0.01;
+            controls.update();
+            renderer.render(scene, camera);
+          };
+          tick();
           return () => {
             dead = true;
             cancelAnimationFrame(raf);

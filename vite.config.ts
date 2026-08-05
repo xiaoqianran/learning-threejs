@@ -29,6 +29,15 @@ const lessonSlugs = [
   "scene-graph",
   "postprocessing",
   "project",
+  "fog",
+  "helpers",
+  "instancing",
+  "dispose",
+  "color-space",
+  "performance",
+  "r3f-map",
+  "pitfalls",
+  "capstone",
 ];
 
 const lessonPaths = lessonSlugs.map((slug) => ({ path: `/lesson/${slug}` }));
@@ -39,6 +48,7 @@ const staticPages = [
   { path: "/lab" },
   { path: "/mistakes" },
   { path: "/certificate" },
+  { path: "/cheatsheet" },
   { path: "/playground" },
   { path: "/studio" },
   ...lessonPaths,
