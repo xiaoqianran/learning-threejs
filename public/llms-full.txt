@@ -1,0 +1,1813 @@
+# learning-threejs — full curriculum
+
+生成自本站 40 课。API 语义以 threejs.org 为准。
+
+---
+
+# Three.js 是什么
+
+- slug: `intro`
+- track: 基础
+- level: 入门
+- minutes: 6
+
+### 一句话理解 Three.js
+
+Three.js 是一个跨浏览器的 3D 库，帮你用更友好的 API 驱动 WebGL / WebGPU。核心是：场景（Scene）+ 相机（Camera）+ 渲染器（Renderer）+ 物体（Mesh）。
+
+
+### 最小的 Three.js 应用
+
+```ts
+import * as THREE from 'three'
+
+const scene = new THREE.Scene()
+const camera = new THREE.PerspectiveCamera(75, w / h, 0.1, 1000)
+const renderer = new THREE.WebGLRenderer({ antialias: true })
+renderer.setSize(w, h)
+document.body.appendChild(renderer.domElement)
+
+const mesh = new THREE.Mesh(
+  new THREE.BoxGeometry(1, 1, 1),
+  new THREE.MeshNormalMaterial(),
+)
+scene.add(mesh)
+camera.position.z = 3
+
+function tick() {
+  requestAnimationFrame(tick)
+  mesh.rotation.y += 0.01
+  renderer.render(scene, camera)
+}
+tick()
+```
+
+
+**交互 Demo：** 动手：旋转立方体（kind: `hello-cube`）
+
+
+**测验：**
+- Q: Three.js 的最小渲染三件套是？
+  - [ ] HTML / CSS / JS
+  - [✓] Scene / Camera / Renderer
+  - [ ] Vue / React / Angular
+  - [ ] Canvas2D / SVG / CSS3D
+  - 解析: 场景、相机、渲染器是渲染循环的核心。
+- Q: Mesh 通常由什么组成？
+  - [ ] 仅材质
+  - [✓] 几何体 Geometry + 材质 Material
+  - [ ] 仅纹理
+  - [ ] 仅灯光
+  - 解析: 几何定义形状，材质定义外观。
+
+
+---
+
+# 场景 · 相机 · 渲染器
+
+- slug: `scene-camera-renderer`
+- track: 基础
+- level: 入门
+- minutes: 10
+
+### 透视相机参数
+
+PerspectiveCamera(fov, aspect, near, far)。fov 是视野角度，aspect 通常是 canvas 宽/高，near/far 裁剪面之外的物体不会渲染。
+
+
+### 相机与像素比
+
+```ts
+const camera = new THREE.PerspectiveCamera(60, w / h, 0.1, 100)
+camera.position.set(2, 2, 4)
+camera.lookAt(0, 0, 0)
+
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2))
+renderer.setSize(w, h)
+renderer.setClearColor(0x0a0c10)
+```
+
+
+**交互 Demo：** 动手：调整 FOV 与相机位置（kind: `scene-setup`）
+
+
+> **提示：** 移动端务必限制 setPixelRatio，否则 GPU 压力过大。
+
+
+**测验：**
+- Q: near / far 的作用？
+  - [ ] 控制亮度
+  - [✓] 裁剪可见深度范围
+  - [ ] 控制雾
+  - [ ] 设置抗锯齿
+  - 解析: 在 near 与 far 之间的深度才会被绘制。
+- Q: aspect 一般取？
+  - [ ] 固定 16/9
+  - [✓] canvas 宽 / 高
+  - [ ] 始终 1
+  - [ ] FOV / 100
+  - 解析: 与画布比例一致才不会拉伸。
+
+
+---
+
+# 几何体 Geometry
+
+- slug: `geometries`
+- track: 基础
+- level: 入门
+- minutes: 10
+
+### 内置几何体
+
+Three.js 提供大量内置几何：BoxGeometry、SphereGeometry、CylinderGeometry、TorusGeometry、PlaneGeometry 等。它们本质上都是 BufferGeometry 的顶点数据封装。
+
+
+### 切换几何
+
+```ts
+const box = new THREE.BoxGeometry(1, 1, 1)
+const sphere = new THREE.SphereGeometry(0.7, 32, 32)
+const torus = new THREE.TorusGeometry(0.55, 0.2, 16, 48)
+mesh.geometry = torus
+```
+
+
+**交互 Demo：** 动手：切换几何体（kind: `geometry`）
+
+
+**测验：**
+- Q: 几何体主要描述？
+  - [ ] 颜色
+  - [✓] 顶点与面（形状）
+  - [ ] 灯光
+  - [ ] 音频
+  - 解析: Geometry 管形状，Material 管外观。
+- Q: SphereGeometry 第二、三个参数常是？
+  - [ ] 颜色与透明度
+  - [✓] widthSegments / heightSegments
+  - [ ] near / far
+  - [ ] x / y
+  - 解析: 分段数越高越圆滑，代价是更多三角形。
+
+
+---
+
+# 材质 Material
+
+- slug: `materials`
+- track: 基础
+- level: 入门
+- minutes: 12
+
+### 常用材质
+
+MeshBasicMaterial 不受光；MeshLambertMaterial 漫反射；MeshPhongMaterial 有高光；MeshStandardMaterial 基于物理（PBR），配合 metalness / roughness 是现代默认选择。
+
+
+### PBR 材质
+
+```ts
+const mat = new THREE.MeshStandardMaterial({
+  color: 0x049ef4,
+  metalness: 0.4,
+  roughness: 0.35,
+})
+```
+
+
+**交互 Demo：** 动手：对比材质与金属度（kind: `materials`）
+
+
+> **提示：** Standard 需要灯光才能看清，Basic 不需要。
+
+
+**测验：**
+- Q: 不受光照影响的是？
+  - [ ] MeshStandardMaterial
+  - [✓] MeshBasicMaterial
+  - [ ] MeshPhongMaterial
+  - [ ] MeshPhysicalMaterial
+  - 解析: Basic 直接显示颜色/贴图。
+- Q: PBR 里 metalness 接近 1 表示？
+  - [ ] 更粗糙
+  - [✓] 更像金属
+  - [ ] 更透明
+  - [ ] 更大体积
+  - 解析: 金属度越高，越接近金属反射。
+
+
+---
+
+# 灯光 Lights
+
+- slug: `lights`
+- track: 基础
+- level: 入门
+- minutes: 12
+
+### 灯光类型
+
+AmbientLight 均匀提亮；DirectionalLight 像太阳；PointLight 像灯泡；SpotLight 像手电筒。真实感场景通常是「环境 + 主光 + 补光」。
+
+
+### 经典三点光
+
+```ts
+scene.add(new THREE.AmbientLight(0xffffff, 0.35))
+const key = new THREE.DirectionalLight(0xffffff, 1.2)
+key.position.set(3, 5, 2)
+scene.add(key)
+const fill = new THREE.PointLight(0x88aaff, 0.6)
+fill.position.set(-3, 1, 2)
+scene.add(fill)
+```
+
+
+**交互 Demo：** 动手：开关灯光与强度（kind: `lights`）
+
+
+**测验：**
+- Q: DirectionalLight 特点？
+  - [ ] 从一点向四周衰减
+  - [✓] 平行光线，类似太阳
+  - [ ] 只能照亮贴图
+  - [ ] 自动生成阴影无需开启
+  - 解析: 方向光光线平行，强度不随距离衰减。
+- Q: 只有环境光时物体看起来？
+  - [ ] 有强烈高光
+  - [✓] 几乎无明暗立体感
+  - [ ] 自动产生阴影
+  - [ ] 会消失
+  - 解析: 环境光均匀，缺少方向性明暗。
+
+
+---
+
+# 变换：位置 · 旋转 · 缩放
+
+- slug: `transforms`
+- track: 基础
+- level: 入门
+- minutes: 10
+
+### Object3D 变换
+
+所有可加入场景的对象都继承 Object3D，具备 position、rotation（欧拉角）、quaternion、scale。旋转顺序默认 XYZ，复杂动画更推荐四元数。
+
+
+### 变换示例
+
+```ts
+mesh.position.set(1, 0.5, 0)
+mesh.rotation.y = Math.PI / 4
+mesh.scale.set(1.2, 1, 1)
+mesh.lookAt(0, 0, 0)
+```
+
+
+**交互 Demo：** 动手：拖动变换参数（kind: `transform`）
+
+
+**测验：**
+- Q: Math.PI 弧度等于？
+  - [ ] 90°
+  - [✓] 180°
+  - [ ] 45°
+  - [ ] 360°
+  - 解析: π 弧度 = 180°。
+- Q: lookAt 的作用？
+  - [ ] 缩放物体
+  - [✓] 让对象朝向目标点
+  - [ ] 改材质
+  - [ ] 删除子节点
+  - 解析: 常用于相机与角色朝向。
+
+
+---
+
+# 纹理与贴图
+
+- slug: `textures`
+- track: 进阶
+- level: 进阶
+- minutes: 12
+
+### 贴图基础
+
+用 TextureLoader 加载图片赋给 material.map。注意 colorSpace：颜色贴图用 SRGBColorSpace。可用 wrapS/wrapT 与 repeat 控制平铺。
+
+
+### 加载贴图
+
+```ts
+const loader = new THREE.TextureLoader()
+const map = loader.load('/wood.jpg')
+map.colorSpace = THREE.SRGBColorSpace
+map.wrapS = map.wrapT = THREE.RepeatWrapping
+map.repeat.set(2, 2)
+material.map = map
+```
+
+
+**交互 Demo：** 动手：程序纹理与重复（kind: `texture`）
+
+
+**测验：**
+- Q: 颜色贴图推荐 colorSpace？
+  - [ ] LinearSRGBColorSpace
+  - [✓] SRGBColorSpace
+  - [ ] NoColorSpace
+  - [ ] HSV
+  - 解析: 颜色贴图用 sRGB，数据贴图通常用线性。
+- Q: repeat.set(2,2) 效果？
+  - [ ] 放大两倍
+  - [✓] 在 U/V 方向各平铺 2 次
+  - [ ] 提高分辨率
+  - [ ] 开启 mipmap
+  - 解析: 需配合 RepeatWrapping。
+
+
+---
+
+# 轨道控制器 OrbitControls
+
+- slug: `controls`
+- track: 进阶
+- level: 进阶
+- minutes: 10
+
+### addons 导入
+
+OrbitControls 来自 three/addons/controls/OrbitControls.js。在动画循环里调用 controls.update()，开启 enableDamping 会更顺滑。
+
+
+### 接入控制器
+
+```ts
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+
+const controls = new OrbitControls(camera, renderer.domElement)
+controls.enableDamping = true
+controls.target.set(0, 0.5, 0)
+
+function tick() {
+  controls.update()
+  renderer.render(scene, camera)
+  requestAnimationFrame(tick)
+}
+```
+
+
+**交互 Demo：** 动手：拖拽场景（kind: `orbit`）
+
+
+**测验：**
+- Q: enableDamping 需要？
+  - [ ] 什么都不做
+  - [✓] 每帧调用 controls.update()
+  - [ ] 只用 setTimeout
+  - [ ] 关闭渲染器
+  - 解析: 阻尼依赖每帧更新。
+- Q: OrbitControls 绑定在？
+  - [ ] 仅 Scene
+  - [✓] Camera + DOM 元素
+  - [ ] 仅 Material
+  - [ ] 仅 Light
+  - 解析: 监听画布事件并驱动相机。
+
+
+---
+
+# 动画循环与 Clock
+
+- slug: `animation`
+- track: 进阶
+- level: 进阶
+- minutes: 10
+
+### 用 delta 做帧率无关动画
+
+不要写 rotation.y += 0.01（帧率不同速度不同）。用 Clock.getDelta() 乘以角速度。
+
+
+### Clock 用法
+
+```ts
+const clock = new THREE.Clock()
+function tick() {
+  const dt = clock.getDelta()
+  mesh.rotation.y += dt * 1.2 // rad/s
+  renderer.render(scene, camera)
+  requestAnimationFrame(tick)
+}
+```
+
+
+**交互 Demo：** 动手：调节转速（kind: `animation`）
+
+
+**测验：**
+- Q: getDelta() 返回？
+  - [ ] 总运行秒数
+  - [✓] 距上一帧秒数
+  - [ ] 帧率
+  - [ ] 固定 16ms
+  - 解析: 两帧间隔，单位秒。
+- Q: 为何用 delta？
+  - [ ] 更省电
+  - [✓] 不同刷新率下速度一致
+  - [ ] 必须开阴影
+  - [ ] 替代相机
+  - 解析: 动画与显示器刷新率解耦。
+
+
+---
+
+# 射线拾取 Raycaster
+
+- slug: `raycasting`
+- track: 进阶
+- level: 进阶
+- minutes: 12
+
+### 从屏幕到 3D
+
+把鼠标坐标归一化到 [-1,1]，用 Raycaster.setFromCamera 发射射线，intersectObjects 返回交点列表。
+
+
+### 点击检测
+
+```ts
+const raycaster = new THREE.Raycaster()
+const pointer = new THREE.Vector2()
+
+function onClick(e: PointerEvent) {
+  const rect = canvas.getBoundingClientRect()
+  pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1
+  pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1
+  raycaster.setFromCamera(pointer, camera)
+  const hits = raycaster.intersectObjects(meshes)
+  if (hits[0]) highlight(hits[0].object)
+}
+```
+
+
+**交互 Demo：** 动手：点击立方体（kind: `raycast`）
+
+
+**测验：**
+- Q: pointer.y 为何要取负？
+  - [ ] 习惯
+  - [✓] 屏幕 Y 向下、NDC Y 向上
+  - [ ] Three 强制
+  - [ ] 与灯光有关
+  - 解析: 坐标系方向不同。
+- Q: intersectObjects 返回？
+  - [ ] 布尔
+  - [✓] 按距离排序的交点数组
+  - [ ] 材质列表
+  - [ ] 相机矩阵
+  - 解析: 最近交点通常是 [0]。
+
+
+---
+
+# 阴影 Shadows
+
+- slug: `shadows`
+- track: 进阶
+- level: 进阶
+- minutes: 12
+
+### 阴影清单
+
+1) renderer.shadowMap.enabled = true
+2) light.castShadow = true
+3) mesh.castShadow / receiveShadow
+4) 调整 shadow.mapSize 与相机 frustum
+
+
+### 开启阴影
+
+```ts
+renderer.shadowMap.enabled = true
+renderer.shadowMap.type = THREE.PCFSoftShadowMap
+
+dirLight.castShadow = true
+dirLight.shadow.mapSize.set(1024, 1024)
+
+mesh.castShadow = true
+ground.receiveShadow = true
+```
+
+
+**交互 Demo：** 动手：观察软阴影（kind: `shadows`）
+
+
+**测验：**
+- Q: 阴影默认？
+  - [ ] 全部开启
+  - [✓] 关闭，需手动启用
+  - [ ] 仅手机开启
+  - [ ] 仅 Basic 材质
+  - 解析: 出于性能考虑默认关闭。
+- Q: mapSize 越大？
+  - [ ] 阴影越糊
+  - [✓] 阴影越清晰但更耗 GPU
+  - [ ] 无关
+  - [ ] 禁用阴影
+  - 解析: 分辨率与性能权衡。
+
+
+---
+
+# 粒子系统 Points
+
+- slug: `particles`
+- track: 进阶
+- level: 进阶
+- minutes: 12
+
+### Points 简介
+
+用大量点表示粒子，比每个粒子一个 Mesh 高效得多。通过 attributes.position 写入顶点，用 PointsMaterial 控制大小与颜色。
+
+
+### 星空粒子
+
+```ts
+const count = 2000
+const positions = new Float32Array(count * 3)
+for (let i = 0; i < count; i++) {
+  positions[i * 3] = (Math.random() - 0.5) * 20
+  positions[i * 3 + 1] = (Math.random() - 0.5) * 20
+  positions[i * 3 + 2] = (Math.random() - 0.5) * 20
+}
+const geo = new THREE.BufferGeometry()
+geo.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+const points = new THREE.Points(
+  geo,
+  new THREE.PointsMaterial({ size: 0.05, color: 0x88ccff }),
+)
+scene.add(points)
+```
+
+
+**交互 Demo：** 动手：粒子星空（kind: `particles`）
+
+
+**测验：**
+- Q: 粒子常用对象是？
+  - [ ] Mesh
+  - [✓] Points
+  - [ ] Sprite only
+  - [ ] Bone
+  - 解析: Points 专为点云/粒子。
+- Q: position 数组长度通常是？
+  - [ ] 粒子数
+  - [✓] 粒子数 × 3 (xyz)
+  - [ ] 固定 100
+  - [ ] 面数
+  - 解析: 每个粒子 3 个浮点。
+
+
+---
+
+# 模型加载 GLTF
+
+- slug: `loaders`
+- track: 进阶
+- level: 进阶
+- minutes: 10
+
+### GLTF 是行业标准
+
+glTF / GLB 是 Web 3D 的首选格式。使用 GLTFLoader 异步加载，把 scene 加入你的场景。本课用程序化「伪模型」演示加载状态机。
+
+
+### 加载 GLB
+
+```ts
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+
+const loader = new GLTFLoader()
+loader.load('/model.glb', (gltf) => {
+  scene.add(gltf.scene)
+}, undefined, (err) => console.error(err))
+```
+
+
+**交互 Demo：** 动手：模拟模型加载（kind: `loaders`）
+
+
+> **提示：** 卸载场景时记得 dispose geometry / material / texture，避免 GPU 泄漏。
+
+
+**测验：**
+- Q: Web 上推荐的模型格式？
+  - [ ] PSD
+  - [✓] glTF / GLB
+  - [ ] DOCX
+  - [ ] MP3
+  - 解析: 体积小、支持 PBR 与动画。
+- Q: load 第三个参数通常是？
+  - [✓] 进度回调
+  - [ ] 相机
+  - [ ] 灯光
+  - [ ] fog
+  - 解析: onProgress 可做加载条。
+
+
+---
+
+# 场景图与父子关系
+
+- slug: `scene-graph`
+- track: 实战
+- level: 实战
+- minutes: 12
+
+### 父子变换
+
+把子物体 add 到 Group 上，父节点旋转时子节点跟随。这是做太阳系、机械臂、角色骨骼的基础。
+
+
+### Group 层级
+
+```ts
+const pivot = new THREE.Group()
+const planet = new THREE.Mesh(geo, mat)
+planet.position.x = 2
+pivot.add(planet)
+scene.add(pivot)
+// 旋转 pivot → 行星公转
+pivot.rotation.y += dt
+```
+
+
+**交互 Demo：** 动手：行星公转（kind: `scene-graph`）
+
+
+**测验：**
+- Q: 子物体 position 是？
+  - [ ] 永远世界坐标
+  - [✓] 相对父节点的本地坐标
+  - [ ] 屏幕像素
+  - [ ] UV
+  - 解析: 本地坐标受父变换影响。
+- Q: Group 的主要用途？
+  - [ ] 替代材质
+  - [✓] 组织层级与整体变换
+  - [ ] 提高 FOV
+  - [ ] 压缩贴图
+  - 解析: 场景图组织的核心容器。
+
+
+---
+
+# 后期处理入门
+
+- slug: `postprocessing`
+- track: 实战
+- level: 实战
+- minutes: 12
+
+### 后期管线
+
+把 renderer.render 换成 composer.render，在中间插入 Bloom、FXAA、SSAO 等 Pass。本课用「简易辉光」模拟后期思路（屏幕外亮度叠加）。
+
+
+### Composer 骨架
+
+```ts
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js'
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js'
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
+
+const composer = new EffectComposer(renderer)
+composer.addPass(new RenderPass(scene, camera))
+composer.addPass(new UnrealBloomPass(new THREE.Vector2(w, h), 0.6, 0.4, 0.85))
+// tick: composer.render()
+```
+
+
+**交互 Demo：** 动手：辉光强度（kind: `postfx`）
+
+
+**测验：**
+- Q: EffectComposer 作用？
+  - [ ] 只改相机
+  - [✓] 多通道后处理渲染管线
+  - [ ] 加载模型
+  - [ ] 替代 OrbitControls
+  - 解析: 把渲染结果再经效果链处理。
+- Q: Bloom 主要增强？
+  - [ ] 阴影边缘
+  - [✓] 高亮区域的发光感
+  - [ ] 几何细节
+  - [ ] 音频
+  - 解析: 让亮部「溢出」发光。
+
+
+---
+
+# 实战：迷你展厅
+
+- slug: `project`
+- track: 实战
+- level: 实战
+- minutes: 15
+
+### 作品清单
+
+一个合格的 Three.js 小作品通常包含：
+1. 清晰的场景构图与相机
+2. 至少一种 PBR 材质 + 灯光
+3. 阴影或环境氛围
+4. OrbitControls 或自定义交互
+5. 拾取 / UI 反馈
+6. 资源 dispose 与 resize 处理
+
+
+### Resize 模板
+
+```ts
+function onResize() {
+  const w = el.clientWidth
+  const h = el.clientHeight
+  camera.aspect = w / h
+  camera.updateProjectionMatrix()
+  renderer.setSize(w, h, false)
+}
+window.addEventListener('resize', onResize)
+```
+
+
+**交互 Demo：** 动手：迷你展厅（kind: `project`）
+
+
+> **提示：** 做完后可以导出到独立 Vite 项目，或继续学 React Three Fiber。
+
+
+**测验：**
+- Q: 窗口尺寸变化时要更新？
+  - [ ] 仅 fog
+  - [✓] camera.aspect + updateProjectionMatrix + setSize
+  - [ ] 仅颜色
+  - [ ] 删除场景
+  - 解析: 否则画面拉伸或裁切错误。
+- Q: 离开页面时建议？
+  - [ ] 什么都不做
+  - [✓] cancelAnimationFrame 并 dispose 资源
+  - [ ] 强制刷新
+  - [ ] 关闭浏览器
+  - 解析: 防止内存/GPU 泄漏。
+
+
+---
+
+# 雾效与氛围 Fog
+
+- slug: `fog`
+- track: 工程进阶
+- level: 进阶
+- minutes: 8
+
+### 为什么要雾
+
+雾能把远景「化开」，既省性能（远物细节不重要），又增加电影感。背景色最好与 fog 颜色一致。
+
+
+### 线性雾
+
+```ts
+scene.background = new THREE.Color(0x0a0c10)
+scene.fog = new THREE.Fog(0x0a0c10, 4, 18)
+// 或指数雾：new THREE.FogExp2(0x0a0c10, 0.08)
+```
+
+
+**交互 Demo：** 动手：调节雾浓度（kind: `fog`）
+
+
+**测验：**
+- Q: Fog 的 near/far 表示？
+  - [ ] 灯光范围
+  - [✓] 雾开始/完全覆盖的距离
+  - [ ] 贴图 UV
+  - [ ] 阴影分辨率
+  - 解析: 线性雾在 near 开始，far 处完全被雾盖住。
+- Q: 背景色与 fog 颜色不一致会？
+  - [ ] 更快
+  - [✓] 边缘出现色带/割裂感
+  - [ ] 自动修复
+  - [ ] 禁用阴影
+  - 解析: 通常让 background ≈ fog.color。
+
+
+---
+
+# 调试助手 Helpers
+
+- slug: `helpers`
+- track: 工程进阶
+- level: 进阶
+- minutes: 8
+
+### 开发期可视化
+
+AxesHelper、GridHelper、DirectionalLightHelper、CameraHelper 能快速暴露坐标系与灯光方向问题。上线前记得移除。
+
+
+### 常用 helper
+
+```ts
+scene.add(new THREE.AxesHelper(2))
+scene.add(new THREE.GridHelper(10, 20))
+const h = new THREE.DirectionalLightHelper(dirLight, 0.5)
+scene.add(h)
+```
+
+
+**交互 Demo：** 动手：开关辅助线（kind: `helpers`）
+
+
+**测验：**
+- Q: AxesHelper 红绿蓝轴通常对应？
+  - [ ] RGB 灯光
+  - [✓] X / Y / Z
+  - [ ] UV / W
+  - [ ] FOV
+  - 解析: X 红、Y 绿、Z 蓝。
+- Q: 生产环境 helper？
+  - [ ] 必须保留
+  - [✓] 开发用，上线移除
+  - [ ] 替代材质
+  - [ ] 自动优化
+  - 解析: 避免多余 draw call 与视觉干扰。
+
+
+---
+
+# 实例化 InstancedMesh
+
+- slug: `instancing`
+- track: 工程进阶
+- level: 进阶
+- minutes: 12
+
+### 为何需要实例化
+
+每个 Mesh 都有绘制开销。InstancedMesh 共享几何与材质，只变每个实例的矩阵/颜色，适合森林、人群、粒子块。
+
+
+### InstancedMesh 骨架
+
+```ts
+const mesh = new THREE.InstancedMesh(geo, mat, count)
+const dummy = new THREE.Object3D()
+for (let i = 0; i < count; i++) {
+  dummy.position.set(...)
+  dummy.updateMatrix()
+  mesh.setMatrixAt(i, dummy.matrix)
+}
+mesh.instanceMatrix.needsUpdate = true
+scene.add(mesh)
+```
+
+
+**交互 Demo：** 动手：千个方块实例（kind: `instancing`）
+
+
+**测验：**
+- Q: InstancedMesh 优势？
+  - [ ] 自动物理
+  - [✓] 大幅减少 draw call
+  - [ ] 更高分辨率贴图
+  - [ ] 无需灯光
+  - 解析: 一批实例一次绘制。
+- Q: 改矩阵后需要？
+  - [ ] 重启浏览器
+  - [✓] instanceMatrix.needsUpdate = true
+  - [ ] 删掉场景
+  - [ ] 换相机
+  - 解析: 通知 GPU 上传新矩阵。
+
+
+---
+
+# 资源释放与泄漏
+
+- slug: `dispose`
+- track: 工程进阶
+- level: 进阶
+- minutes: 10
+
+### GPU 不会自动 GC
+
+JS 对象被回收 ≠ GPU 缓冲释放。路由切换、反复创建场景时必须 dispose，并 cancelAnimationFrame。
+
+
+### 清理模板
+
+```ts
+function disposeObject(obj: THREE.Object3D) {
+  obj.traverse((child) => {
+    const m = child as THREE.Mesh
+    m.geometry?.dispose()
+    const mat = m.material
+    if (!mat) return
+    for (const x of Array.isArray(mat) ? mat : [mat]) {
+      x.dispose()
+    }
+  })
+}
+cancelAnimationFrame(raf)
+renderer.dispose()
+```
+
+
+**交互 Demo：** 动手：创建 / 销毁场景（kind: `dispose`）
+
+
+**测验：**
+- Q: 只把 mesh 从 scene 移除够吗？
+  - [ ] 够了
+  - [✓] 不够，还需 dispose GPU 资源
+  - [ ] 自动完成
+  - [ ] 只删相机
+  - 解析: 移除 ≠ 释放 GPU 内存。
+- Q: 离开页时还要？
+  - [ ] 忽略
+  - [✓] cancelAnimationFrame + renderer.dispose
+  - [ ] 强制 reload
+  - [ ] 清空 localStorage
+  - 解析: 停掉循环并释放渲染器。
+
+
+---
+
+# 色彩管理
+
+- slug: `color-space`
+- track: 工程进阶
+- level: 进阶
+- minutes: 10
+
+### 为什么颜色发灰/过曝
+
+r152+ 默认线性工作流。颜色贴图用 SRGBColorSpace；渲染输出 renderer.outputColorSpace = SRGBColorSpace；可用 toneMapping 控制高光。
+
+
+### 现代色彩设置
+
+```ts
+renderer.outputColorSpace = THREE.SRGBColorSpace
+renderer.toneMapping = THREE.ACESFilmicToneMapping
+renderer.toneMappingExposure = 1.0
+map.colorSpace = THREE.SRGBColorSpace
+```
+
+
+**交互 Demo：** 动手：曝光与色调映射（kind: `colorspace`）
+
+
+**测验：**
+- Q: 颜色贴图应设？
+  - [ ] Linear
+  - [✓] SRGBColorSpace
+  - [ ] HSV
+  - [ ] 不设置永远对
+  - 解析: 颜色数据是 sRGB 编码。
+- Q: toneMapping 作用？
+  - [ ] 改几何
+  - [✓] 把 HDR 映射到可显示范围
+  - [ ] 加载模型
+  - [ ] 开阴影
+  - 解析: 控制亮度曲线与观感。
+
+
+---
+
+# 性能优化清单
+
+- slug: `performance`
+- track: 工程进阶
+- level: 实战
+- minutes: 12
+
+### 优先优化项
+
+1. 限制 pixelRatio ≤ 2
+2. 合并/实例化相同物体
+3. 阴影 mapSize 适中
+4. 共享 geometry/material
+5. 视锥外自动剔除（默认）
+6. 少用实时后处理
+
+
+### 快速配置
+
+```ts
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2))
+renderer.shadowMap.enabled = true
+// 阴影 512~1024 通常够用
+// 同材质多物体 → InstancedMesh 或 merge
+```
+
+
+**交互 Demo：** 动手：像素比与物体数量（kind: `performance`）
+
+
+**测验：**
+- Q: 移动端 pixelRatio 建议？
+  - [ ] 无限
+  - [✓] 通常 cap 到 1.5~2
+  - [ ] 必须 4
+  - [ ] 设为 0
+  - 解析: 像素翻倍填充率压力巨大。
+- Q: 相同树木 500 棵优先？
+  - [ ] 500 个 Mesh
+  - [✓] InstancedMesh
+  - [ ] 500 个 Scene
+  - [ ] 关掉相机
+  - 解析: 实例化是标准解法。
+
+
+---
+
+# 对照：React Three Fiber
+
+- slug: `r3f-map`
+- track: 工程进阶
+- level: 实战
+- minutes: 12
+
+### 为何还要学原生 Three
+
+R3F 是 Three 的 React 渲染器。不会 Three 就只会「抄组件」；会 Three 才能读懂源码、写自定义 shader、排障。
+
+
+### 对照写法
+
+```tsx
+// 原生
+const mesh = new THREE.Mesh(geo, mat)
+scene.add(mesh)
+mesh.rotation.y += dt
+
+// R3F
+<mesh rotation-y={y}>
+  <boxGeometry />
+  <meshStandardMaterial color="#049ef4" />
+</mesh>
+```
+
+
+**交互 Demo：** 动手：同一场景的「声明式」对照（kind: `r3f`）
+
+
+> **提示：** 学完本站后，再装 @react-three/fiber + drei，会非常顺。
+
+
+**测验：**
+- Q: R3F 本质是？
+  - [ ] 新 3D 引擎
+  - [✓] Three.js 的 React 渲染器
+  - [ ] CSS 3D
+  - [ ] Blender 插件
+  - 解析: 底层还是 three。
+- Q: 原生 Three 的 scene.add 对应 R3F？
+  - [ ] useState
+  - [✓] JSX 树嵌套 / Canvas 子节点
+  - [ ] redux
+  - [ ] iframe
+  - 解析: 父子关系用组件树表达。
+
+
+---
+
+# 常见坑速查
+
+- slug: `pitfalls`
+- track: 工程进阶
+- level: 实战
+- minutes: 10
+
+### 黑屏 checklist
+
+1. 相机是否在物体内部/背后
+2. 有没有灯（Standard 材质）
+3. 有没有 render 循环
+4. canvas 尺寸是否为 0
+5. near/far 是否裁掉
+6. 材质颜色是否纯黑
+
+
+### GitHub Pages base
+
+```ts
+// vite.config.ts
+base: '/learning-threejs/'
+// 资源与路由都要带 base，否则 Pages 上 404
+```
+
+
+**交互 Demo：** 用 helper 定位坐标系问题（kind: `helpers`）
+
+
+**测验：**
+- Q: Standard 材质全黑常见原因？
+  - [✓] 没加灯光
+  - [ ] 相机太远一定黑
+  - [ ] 必须用 Basic
+  - [ ] Fog 强制
+  - 解析: PBR 材质依赖光照。
+- Q: 画面被拉扁？
+  - [ ] 换浏览器
+  - [✓] 更新 camera.aspect + setSize
+  - [ ] 删 fog
+  - [ ] 关抗锯齿
+  - 解析: aspect 与画布不一致。
+
+
+---
+
+# 毕业作品清单
+
+- slug: `capstone`
+- track: 工程进阶
+- level: 实战
+- minutes: 10
+
+### 验收清单
+
+[ ] 有明确主题（展厅 / 产品 / 小游戏）
+[ ] 相机与构图舒服
+[ ] 至少 PBR + 灯光 + 阴影或氛围
+[ ] 一种交互（拾取 / 控制 / 动画）
+[ ] resize 正常
+[ ] 离开页 dispose
+[ ] README 写清操作方式
+[ ] 部署（Pages / Vercel）
+
+
+**交互 Demo：** 动手：作品预检场景（kind: `capstone`）
+
+
+> **提示：** 作品 > 证书。把场景工坊调参结果抄进自己的仓库更有说服力。
+
+
+**测验：**
+- Q: 作品最少应证明你会？
+  - [ ] 只会截图
+  - [✓] 场景搭建 + 灯光材质 + 交互 + 工程清理
+  - [ ] 只会改颜色
+  - [ ] 只会用 CDN 示例
+  - 解析: 覆盖渲染管线与工程素养。
+- Q: 部署后资源 404 优先查？
+  - [ ] 天气
+  - [✓] base 路径与资源引用
+  - [ ] CPU 型号
+  - [ ] npm 版本 alone
+  - 解析: Pages 子路径最容易踩坑。
+
+
+---
+
+# 环境反射 EnvMap
+
+- slug: `env-map`
+- track: 创意表现
+- level: 进阶
+- minutes: 12
+
+### 金属为什么需要环境
+
+没有环境信息，金属看起来像塑料。envMap 或 scene.environment 提供反射采样。本课用程序化立方体环境演示。
+
+
+### 设置环境
+
+```ts
+// 简化：用 CubeTexture 或 PMREM
+scene.environment = envTexture
+material.envMap = envTexture
+material.envMapIntensity = 1.2
+material.metalness = 1
+material.roughness = 0.15
+```
+
+
+**交互 Demo：** 动手：金属球反射（kind: `envmap`）
+
+
+**测验：**
+- Q: 金属发灰塑料感常见原因？
+  - [✓] 没环境贴图
+  - [ ] FOV 太大
+  - [ ] 必须用 Basic
+  - [ ] 关掉抗锯齿
+  - 解析: 反射依赖环境信息。
+- Q: envMapIntensity 控制？
+  - [ ] 雾浓度
+  - [✓] 环境反射强度
+  - [ ] 阴影分辨率
+  - [ ] 粒子数
+  - 解析: 越大反射越明显。
+
+
+---
+
+# ShaderMaterial 入门
+
+- slug: `shaders`
+- track: 创意表现
+- level: 进阶
+- minutes: 14
+
+### 为什么要 shader
+
+内置材质覆盖 80% 场景；特殊风格、溶解、水波、描边常需要自定义 GLSL。ShaderMaterial 给你完整控制。
+
+
+### 最小 shader
+
+```glsl
+// vertex
+varying vec2 vUv;
+void main() {
+  vUv = uv;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}
+// fragment
+uniform float uTime;
+varying vec2 vUv;
+void main() {
+  gl_FragColor = vec4(0.5 + 0.5 * sin(uTime + vUv.x * 6.0), 0.4, 0.9, 1.0);
+}
+```
+
+
+**交互 Demo：** 动手：彩色波纹 shader（kind: `shader`）
+
+
+**测验：**
+- Q: uniform 的作用？
+  - [ ] 删顶点
+  - [✓] 从 JS 传参给着色器
+  - [ ] 替代相机
+  - [ ] 只用于雾
+  - 解析: 如时间、颜色、分辨率。
+- Q: varying 用于？
+  - [✓] 顶点→片元插值传递
+  - [ ] 加载模型
+  - [ ] OrbitControls
+  - [ ] dispose
+  - 解析: 在两个阶段之间传 uv/法线等。
+
+
+---
+
+# 相机平滑插值
+
+- slug: `camera-lerp`
+- track: 创意表现
+- level: 进阶
+- minutes: 10
+
+### 别瞬移相机
+
+交互切换焦点时，用 lerp 或 damp 平滑过渡，观感立刻专业。注意 lookAt 目标也可插值。
+
+
+### lerp 相机
+
+```ts
+const target = new THREE.Vector3(2, 1.5, 4)
+// 每帧
+camera.position.lerp(target, 1 - Math.exp(-3 * dt))
+camera.lookAt(lookTarget)
+```
+
+
+**交互 Demo：** 动手：切换机位（kind: `camera-lerp`）
+
+
+**测验：**
+- Q: lerp 的 t 参数含义？
+  - [ ] 绝对坐标
+  - [✓] 0~1 插值比例
+  - [ ] 帧率
+  - [ ] 灯光强度
+  - 解析: 0 在起点，1 在终点。
+- Q: 帧率无关的平滑常用？
+  - [ ] 固定 +0.01
+  - [✓] exp damp / 1-exp(-k*dt)
+  - [ ] 只 setTimeout
+  - [ ] 关渲染
+  - 解析: 基于 dt 的阻尼更稳。
+
+
+---
+
+# 第一人称漫游
+
+- slug: `first-person`
+- track: 创意表现
+- level: 实战
+- minutes: 14
+
+### 漫游核心
+
+PointerLockControls 或自写 yaw/pitch；水平面移动用相机前方在 XZ 的投影。本 demo 用按钮模拟转向 + WASD（点击画布聚焦后键盘可用）。
+
+
+### XZ 移动
+
+```ts
+const forward = new THREE.Vector3()
+camera.getWorldDirection(forward)
+forward.y = 0
+forward.normalize()
+camera.position.addScaledVector(forward, speed * dt)
+```
+
+
+**交互 Demo：** 动手：WASD 漫游（kind: `first-person`）
+
+
+**测验：**
+- Q: 第一人称前后移动应取？
+  - [ ] 世界 +Y
+  - [✓] 相机前方在水平面的投影
+  - [ ] 永远 +X
+  - [ ] 灯光方向
+  - 解析: 避免飞天/钻地（除非飞行模式）。
+- Q: PointerLock 的目的？
+  - [ ] 锁材质
+  - [✓] 捕获鼠标做视角
+  - [ ] 加速下载
+  - [ ] 开阴影
+  - 解析: 沉浸式视角控制。
+
+
+---
+
+# 公告板 Sprite
+
+- slug: `billboard`
+- track: 创意表现
+- level: 进阶
+- minutes: 10
+
+### Sprite / Billboard
+
+UI 标签、血条、光点常用 Sprite：平面永远面向相机。也可对 Mesh 每帧 quaternion.copy(camera.quaternion)。
+
+
+### Sprite
+
+```ts
+const map = new THREE.CanvasTexture(canvas)
+const mat = new THREE.SpriteMaterial({ map, transparent: true })
+const sprite = new THREE.Sprite(mat)
+sprite.scale.set(1, 0.4, 1)
+scene.add(sprite)
+```
+
+
+**交互 Demo：** 动手：物体头顶标签（kind: `billboard`）
+
+
+**测验：**
+- Q: Sprite 默认？
+  - [ ] 背对相机
+  - [✓] 面向相机
+  - [ ] 只在 Orthographic 显示
+  - [ ] 不能贴图
+  - 解析: 公告板特性。
+- Q: 3D 世界标签常见做法？
+  - [ ] 只用 HTML 绝对定位永远最好
+  - [✓] Sprite 或 CSS2DRenderer
+  - [ ] 删相机
+  - [ ] 只靠雾
+  - 解析: 两种都能做世界空间标签。
+
+
+---
+
+# 综合：作品走廊
+
+- slug: `gallery`
+- track: 创意表现
+- level: 实战
+- minutes: 15
+
+### 把技能串起来
+
+走廊场景综合：场景图、灯光阴影、拾取、相机 lerp、雾与氛围。这是作品集友好的结构。
+
+
+**交互 Demo：** 动手：逛展廊（kind: `gallery`）
+
+
+**测验：**
+- Q: 展廊点击展品后常见体验？
+  - [ ] 瞬切黑屏
+  - [✓] 平滑运镜 + 信息反馈
+  - [ ] 必须刷新页面
+  - [ ] 关掉灯
+  - 解析: 运镜与 UI 反馈构成完整交互。
+- Q: 多展品场景注意？
+  - [ ] 每个都新建 Renderer
+  - [✓] 共享灯光与合理 draw call
+  - [ ] 禁止雾
+  - [ ] 禁用 dispose
+  - 解析: 一个渲染器 + 场景组织。
+
+
+---
+
+# 拖拽物体 Drag
+
+- slug: `drag-interact`
+- track: 交互进阶
+- level: 进阶
+- minutes: 12
+
+### 拖拽原理
+
+按下时用射线命中物体，移动时把射线与一个虚拟平面（常为与相机垂直或地面）求交，把物体 position 设到交点。
+
+
+### 平面交点
+
+```ts
+const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0)
+const hit = new THREE.Vector3()
+raycaster.ray.intersectPlane(plane, hit)
+object.position.x = hit.x
+object.position.z = hit.z
+```
+
+
+**交互 Demo：** 动手：拖动方块（kind: `drag`）
+
+
+**测验：**
+- Q: 拖拽定位常用？
+  - [ ] 随机坐标
+  - [✓] 射线与平面求交
+  - [ ] 只改 rotation
+  - [ ] 删 geometry
+  - 解析: 把屏幕移动映射到 3D 平面。
+- Q: 拖拽时为何常禁用 OrbitControls？
+  - [ ] 省电
+  - [✓] 避免与相机旋转抢事件
+  - [ ] 必须
+  - [ ] 提高阴影
+  - 解析: 同一指针事件会冲突。
+
+
+---
+
+# 昼夜循环
+
+- slug: `day-night`
+- track: 交互进阶
+- level: 进阶
+- minutes: 10
+
+### 氛围时间轴
+
+用 0~1 的 dayFactor 插值：太阳高度、DirectionalLight 强度与颜色、Ambient、背景色。不必真模拟天文。
+
+
+### 简单插值
+
+```ts
+const t = dayFactor // 0 night → 1 noon
+sun.intensity = THREE.MathUtils.lerp(0.05, 1.4, t)
+sun.color.setHSL(0.1, 0.5, THREE.MathUtils.lerp(0.4, 0.9, t))
+scene.background = new THREE.Color().setHSL(0.6, 0.3, THREE.MathUtils.lerp(0.02, 0.35, t))
+```
+
+
+**交互 Demo：** 动手：滑动时间（kind: `day-night`）
+
+
+**测验：**
+- Q: 昼夜核心是？
+  - [ ] 换模型
+  - [✓] 灯光与天空参数插值
+  - [ ] 必须用物理引擎
+  - [ ] 关相机
+  - 解析: 氛围靠光与背景联动。
+- Q: 夜间太阳强度应？
+  - [ ] 最大
+  - [✓] 接近 0 并靠月光/环境补
+  - [ ] 负数
+  - [ ] 无穷
+  - 解析: 否则全场景过亮。
+
+
+---
+
+# 运动拖尾
+
+- slug: `motion-trails`
+- track: 交互进阶
+- level: 进阶
+- minutes: 10
+
+### 拖尾思路
+
+每帧记录物体位置到环形缓冲，用 Line 或半透明克隆体显示。游戏里常见于子弹、刀光。
+
+
+### 位置队列
+
+```ts
+history.push(mesh.position.clone())
+if (history.length > 40) history.shift()
+line.geometry.setFromPoints(history)
+```
+
+
+**交互 Demo：** 动手：飞舞拖尾（kind: `trails`）
+
+
+**测验：**
+- Q: 拖尾数据本质是？
+  - [ ] 贴图 mipmap
+  - [✓] 历史位置序列
+  - [ ] 阴影 map
+  - [ ] 音频频谱
+  - 解析: 时间上的位置采样。
+- Q: 队列过长会？
+  - [ ] 永远更快
+  - [✓] 更耗内存/绘制
+  - [ ] 自动优化
+  - [ ] 禁用雾
+  - 解析: 需要限制长度。
+
+
+---
+
+# 形态过渡 Morph
+
+- slug: `morph-blend`
+- track: 交互进阶
+- level: 进阶
+- minutes: 12
+
+### Morph 概念
+
+正式方案用 BufferGeometry morphAttributes；本课用相同拓扑的两套顶点手动 lerp，帮助理解「形状动画」。
+
+
+### 顶点 lerp
+
+```ts
+for (let i = 0; i < count; i++) {
+  pos[i] = THREE.MathUtils.lerp(shapeA[i], shapeB[i], t)
+}
+geometry.attributes.position.needsUpdate = true
+geometry.computeVertexNormals()
+```
+
+
+**交互 Demo：** 动手：球 ⇄ 方体 变形（kind: `morph`）
+
+
+**测验：**
+- Q: 顶点 morph 前提？
+  - [✓] 顶点数量/拓扑兼容
+  - [ ] 必须同颜色
+  - [ ] 必须关灯
+  - [ ] 只能 2 个三角
+  - 解析: 一一对应才能插值。
+- Q: 改 position 后常需？
+  - [ ] 删除材质
+  - [✓] needsUpdate + 重算法线
+  - [ ] 换浏览器
+  - [ ] 关阴影必现
+  - 解析: 否则光照法线错误。
+
+
+---
+
+# 多选与框选心智
+
+- slug: `multi-select`
+- track: 交互进阶
+- level: 实战
+- minutes: 10
+
+### 选择集
+
+编辑器核心是 Selection Set：单击单选，Shift 切换加入/移除。高亮用 emissive 或 outline。
+
+
+### 选择集
+
+```ts
+const selected = new Set<THREE.Object3D>()
+function toggle(obj: THREE.Object3D, additive: boolean) {
+  if (!additive) selected.clear()
+  if (selected.has(obj)) selected.delete(obj)
+  else selected.add(obj)
+  refreshHighlight()
+}
+```
+
+
+**交互 Demo：** 动手：Shift 多选（kind: `multiselect`）
+
+
+**测验：**
+- Q: 编辑器多选状态适合存？
+  - [ ] 单个 boolean
+  - [✓] Set/集合
+  - [ ] 只能字符串
+  - [ ] 雾 dens
+  - 解析: 多个对象引用。
+- Q: Shift 点击常见语义？
+  - [ ] 删除场景
+  - [✓] 加减选择集
+  - [ ] 截图
+  - [ ] 导出 glb
+  - 解析: 与桌面软件一致。
+
+
+---
+
+# 网格吸附 Snap
+
+- slug: `snap-grid`
+- track: 交互进阶
+- level: 实战
+- minutes: 10
+
+### 量化坐标
+
+snap = Math.round(x / cell) * cell。关卡编辑、家具摆放必备。
+
+
+### 吸附
+
+```ts
+function snap(v: number, cell = 1) {
+  return Math.round(v / cell) * cell
+}
+mesh.position.x = snap(hit.x, 0.5)
+mesh.position.z = snap(hit.z, 0.5)
+```
+
+
+**交互 Demo：** 动手：吸附拖拽（kind: `snap-grid`）
+
+
+**测验：**
+- Q: 网格吸附本质？
+  - [ ] 随机抖动
+  - [✓] 坐标量化到格子
+  - [ ] 只改颜色
+  - [ ] 开 Bloom
+  - 解析: round 到 cell 倍数。
+- Q: cell 越小？
+  - [ ] 越粗
+  - [✓] 吸附越精细
+  - [ ] 自动阴影越好
+  - [ ] 禁用射线
+  - 解析: 格子更密。
+
+
+---
+
+# 触控与移动端
+
+- slug: `touch-mobile`
+- track: 作品收官
+- level: 实战
+- minutes: 10
+
+### 移动端三件套
+
+1) canvas.style.touchAction = 'none' 避免页面滚动抢手势
+2) pixelRatio 上限 1.5~2
+3) OrbitControls 本身支持触控；自定义拖拽用 pointer 事件
+
+
+### 触控友好配置
+
+```ts
+renderer.domElement.style.touchAction = 'none'
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75))
+controls.enableDamping = true
+```
+
+
+**交互 Demo：** 动手：触控友好场景（kind: `touch`）
+
+
+**测验：**
+- Q: touch-action: none 的目的？
+  - [ ] 提高分辨率
+  - [✓] 避免浏览器默认手势干扰 3D
+  - [ ] 开阴影
+  - [ ] 换材质
+  - 解析: 把指针交给 three 控件。
+- Q: 移动端 pixelRatio 建议？
+  - [ ] 无限
+  - [✓] 限制上限
+  - [ ] 必须 4
+  - [ ] 设 0
+  - 解析: 填充率压力大。
+
+
+---
+
+# 作品集打包上线
+
+- slug: `portfolio-ship`
+- track: 作品收官
+- level: 实战
+- minutes: 12
+
+### 招聘官 30 秒能看懂吗
+
+仓库首页写清：主题 / 技术栈 / 操作方式 / 在线链接 / 截图。部署注意 Vite base 与 SPA fallback。
+
+
+### README 骨架
+
+```md
+# Mini Gallery
+Three.js 展厅 Demo
+
+## 操作
+- 拖拽环视 · 点击展品查看信息
+
+## 技术
+- three · Vite · TypeScript
+
+## 本地
+npm i && npm run dev
+```
+
+
+**交互 Demo：** 动手：作品集预览卡（kind: `portfolio`）
+
+
+**测验：**
+- Q: 作品仓库最需要有？
+  - [ ] 只有 node_modules
+  - [✓] 可运行说明 + 在线链接 + 截图
+  - [ ] 密钥
+  - [ ] 无 README
+  - 解析: 降低阅读成本。
+- Q: GitHub Pages 子路径常见坑？
+  - [ ] 天气
+  - [✓] base 路径未配置
+  - [ ] CPU
+  - [ ] 必须用 Vue
+  - 解析: 资源 404。
+
+
+---
+
+# 终章：可展示作品
+
+- slug: `final-piece`
+- track: 作品收官
+- level: 实战
+- minutes: 15
+
+### 交作业标准
+
+主题明确 · 可交互 · 有反馈 · resize/dispose · 能讲清技术点。下方 Demo 可当模板改色/换几何即成作品。
+
+
+**交互 Demo：** 动手：终章作品模板（kind: `finale`）
+
+
+> **提示：** v5 为主版本终版：之后优先修 bug 与内容微调。
+
+
+**测验：**
+- Q: 作品演示应优先保证？
+  - [ ] 炫技 shader 堆满
+  - [✓] 稳定可交互 + 讲清设计
+  - [ ] 强制 4K 贴图
+  - [ ] 关所有灯光
+  - 解析: 可演示、可叙述。
+- Q: 离开页时？
+  - [ ] 不管
+  - [✓] 停循环并 dispose
+  - [ ] 必须 alert
+  - [ ] 删 git
+  - 解析: 工程素养。
+

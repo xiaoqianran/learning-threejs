@@ -1,0 +1,88 @@
+# learning-threejs
+
+> 交互式中文 Three.js 教程：讲解 + 源码 + Live 3D Demo + 测验 + Playground + 工坊 + 作品秀。
+> 权威以 [threejs.org/llms.txt](https://threejs.org/llms.txt) 为准。
+
+完整上下文（全文）：[https://xiaoqianran.github.io/learning-threejs/llms-full.txt](https://xiaoqianran.github.io/learning-threejs/llms-full.txt)
+
+## 官方权威（务必优先）
+
+- [threejs.org/llms.txt](https://threejs.org/llms.txt)
+- [threejs.org/docs/llms.txt](https://threejs.org/docs/llms.txt)
+- [Three.js Manual / Docs](https://threejs.org/docs/)
+- [Examples](https://threejs.org/examples/)
+- [R3F llms](https://r3f.docs.pmnd.rs/llms.txt)
+
+## 站点入口
+
+- [首页大纲](https://xiaoqianran.github.io/learning-threejs/)
+- [文档地图](https://xiaoqianran.github.io/learning-threejs/docs)
+- [学习路径](https://xiaoqianran.github.io/learning-threejs/path)
+- [挑战](https://xiaoqianran.github.io/learning-threejs/challenge)
+- [作品秀](https://xiaoqianran.github.io/learning-threejs/showcase)
+- [Playground](https://xiaoqianran.github.io/learning-threejs/playground)
+- [工坊](https://xiaoqianran.github.io/learning-threejs/studio)
+- [速查表](https://xiaoqianran.github.io/learning-threejs/cheatsheet)
+- [学习中心](https://xiaoqianran.github.io/learning-threejs/hub)
+- [结业证明](https://xiaoqianran.github.io/learning-threejs/certificate)
+
+## 课程 · 基础
+
+- [Three.js 是什么](https://xiaoqianran.github.io/learning-threejs/lesson/intro): 认识 WebGL 封装、场景图思维，以及它解决的问题。（入门 · 6 分钟）
+- [场景 · 相机 · 渲染器](https://xiaoqianran.github.io/learning-threejs/lesson/scene-camera-renderer): 透视/正交相机、像素比、背景色与渲染循环。（入门 · 10 分钟）
+- [几何体 Geometry](https://xiaoqianran.github.io/learning-threejs/lesson/geometries): Box / Sphere / Plane / Torus，以及 BufferGeometry 概念。（入门 · 10 分钟）
+- [材质 Material](https://xiaoqianran.github.io/learning-threejs/lesson/materials): Basic / Lambert / Phong / Standard，理解光照响应差异。（入门 · 12 分钟）
+- [灯光 Lights](https://xiaoqianran.github.io/learning-threejs/lesson/lights): 环境光、平行光、点光、聚光，以及辅助对象。（入门 · 12 分钟）
+- [变换：位置 · 旋转 · 缩放](https://xiaoqianran.github.io/learning-threejs/lesson/transforms): position / rotation / scale / lookAt 与本地坐标系。（入门 · 10 分钟）
+
+## 课程 · 进阶
+
+- [纹理与贴图](https://xiaoqianran.github.io/learning-threejs/lesson/textures): TextureLoader、color map、wrap、repeat 与色彩空间。（进阶 · 12 分钟）
+- [轨道控制器 OrbitControls](https://xiaoqianran.github.io/learning-threejs/lesson/controls): 拖拽旋转、缩放、平移，以及 damping 惯性。（进阶 · 10 分钟）
+- [动画循环与 Clock](https://xiaoqianran.github.io/learning-threejs/lesson/animation): requestAnimationFrame、delta 时间、匀速旋转。（进阶 · 10 分钟）
+- [射线拾取 Raycaster](https://xiaoqianran.github.io/learning-threejs/lesson/raycasting): 鼠标点击选中 3D 物体，实现交互。（进阶 · 12 分钟）
+- [阴影 Shadows](https://xiaoqianran.github.io/learning-threejs/lesson/shadows): 开启阴影、灯光阴影相机、接收与投射。（进阶 · 12 分钟）
+- [粒子系统 Points](https://xiaoqianran.github.io/learning-threejs/lesson/particles): BufferGeometry + PointsMaterial 做星空与特效。（进阶 · 12 分钟）
+- [模型加载 GLTF](https://xiaoqianran.github.io/learning-threejs/lesson/loaders): GLTFLoader、异步加载与资源释放概念。（进阶 · 10 分钟）
+
+## 课程 · 实战
+
+- [场景图与父子关系](https://xiaoqianran.github.io/learning-threejs/lesson/scene-graph): Group、本地/世界坐标、层级变换。（实战 · 12 分钟）
+- [后期处理入门](https://xiaoqianran.github.io/learning-threejs/lesson/postprocessing): EffectComposer 思路：RenderPass + 效果通道。（实战 · 12 分钟）
+- [实战：迷你展厅](https://xiaoqianran.github.io/learning-threejs/lesson/project): 综合场景、灯光、阴影、控制器与拾取，完成作品闭环。（实战 · 15 分钟）
+
+## 课程 · 工程进阶
+
+- [雾效与氛围 Fog](https://xiaoqianran.github.io/learning-threejs/lesson/fog): Fog / FogExp2 营造景深与体积感。（进阶 · 8 分钟）
+- [调试助手 Helpers](https://xiaoqianran.github.io/learning-threejs/lesson/helpers): Axes / Grid / LightHelper，以及相机辅助。（进阶 · 8 分钟）
+- [实例化 InstancedMesh](https://xiaoqianran.github.io/learning-threejs/lesson/instancing): 用一次绘制渲染成千上万相同物体。（进阶 · 12 分钟）
+- [资源释放与泄漏](https://xiaoqianran.github.io/learning-threejs/lesson/dispose): geometry / material / texture dispose，取消 rAF。（进阶 · 10 分钟）
+- [色彩管理](https://xiaoqianran.github.io/learning-threejs/lesson/color-space): outputColorSpace、贴图 colorSpace、tone mapping。（进阶 · 10 分钟）
+- [性能优化清单](https://xiaoqianran.github.io/learning-threejs/lesson/performance): draw call、像素比、阴影、共享材质、剔除。（实战 · 12 分钟）
+- [对照：React Three Fiber](https://xiaoqianran.github.io/learning-threejs/lesson/r3f-map): 命令式 Three → 声明式 R3F 的心智映射。（实战 · 12 分钟）
+- [常见坑速查](https://xiaoqianran.github.io/learning-threejs/lesson/pitfalls): 黑屏、拉伸、不更新、灯光全黑、路径 base。（实战 · 10 分钟）
+- [毕业作品清单](https://xiaoqianran.github.io/learning-threejs/lesson/capstone): 可展示的 Three.js 作品验收标准。（实战 · 10 分钟）
+
+## 课程 · 创意表现
+
+- [环境反射 EnvMap](https://xiaoqianran.github.io/learning-threejs/lesson/env-map): 用立方体贴图 / 简易环境色做金属反射。（进阶 · 12 分钟）
+- [ShaderMaterial 入门](https://xiaoqianran.github.io/learning-threejs/lesson/shaders): 顶点/片元着色器最小示例与 uniform 动画。（进阶 · 14 分钟）
+- [相机平滑插值](https://xiaoqianran.github.io/learning-threejs/lesson/camera-lerp): Vector3.lerp / damp 做电影运镜。（进阶 · 10 分钟）
+- [第一人称漫游](https://xiaoqianran.github.io/learning-threejs/lesson/first-person): PointerLock + WASD 基础移动（本站简化版）。（实战 · 14 分钟）
+- [公告板 Sprite](https://xiaoqianran.github.io/learning-threejs/lesson/billboard): 始终朝向相机的标签与特效面片。（进阶 · 10 分钟）
+- [综合：作品走廊](https://xiaoqianran.github.io/learning-threejs/lesson/gallery): 多展位 + 拾取 + 平滑相机，串成可逛的走廊。（实战 · 15 分钟）
+
+## 课程 · 交互进阶
+
+- [拖拽物体 Drag](https://xiaoqianran.github.io/learning-threejs/lesson/drag-interact): Raycaster + plane 交点实现 3D 拖拽。（进阶 · 12 分钟）
+- [昼夜循环](https://xiaoqianran.github.io/learning-threejs/lesson/day-night): 灯光强度 / 色温 / 天空色随时间变化。（进阶 · 10 分钟）
+- [运动拖尾](https://xiaoqianran.github.io/learning-threejs/lesson/motion-trails): 历史位置队列绘制路径 / 残影。（进阶 · 10 分钟）
+- [形态过渡 Morph](https://xiaoqianran.github.io/learning-threejs/lesson/morph-blend): 在两种几何之间插值（简化 morph）。（进阶 · 12 分钟）
+- [多选与框选心智](https://xiaoqianran.github.io/learning-threejs/lesson/multi-select): Shift 多选、集合状态与高亮。（实战 · 10 分钟）
+- [网格吸附 Snap](https://xiaoqianran.github.io/learning-threejs/lesson/snap-grid): 拖拽时坐标量化到网格。（实战 · 10 分钟）
+
+## 课程 · 作品收官
+
+- [触控与移动端](https://xiaoqianran.github.io/learning-threejs/lesson/touch-mobile): touch-action、双指缩放兼容、性能与像素比。（实战 · 10 分钟）
+- [作品集打包上线](https://xiaoqianran.github.io/learning-threejs/lesson/portfolio-ship): README、操作说明、截图、base 路径、可复现仓库。（实战 · 12 分钟）
+- [终章：可展示作品](https://xiaoqianran.github.io/learning-threejs/lesson/final-piece): 综合灯光、交互、运镜与氛围，交一份作品骨架。（实战 · 15 分钟）

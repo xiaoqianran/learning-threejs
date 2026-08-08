@@ -1,5 +1,14 @@
 # learning-threejs
 
+交互式中文 **Three.js** 教程（TanStack Start + Vite + WebGL）。
+
+- 对齐 [threejs.org/llms.txt](https://threejs.org/llms.txt)（官方有！）
+- 本站：[`/llms.txt`](https://xiaoqianran.github.io/learning-threejs/llms.txt) · [`/llms-full.txt`](https://xiaoqianran.github.io/learning-threejs/llms-full.txt)
+- UI：Catppuccin + 学/查/练/我 导航（与 learning-vue3 同构）
+- 部署：GitHub Actions → GitHub Pages
+
+# learning-threejs
+
 Three.js 中文交互式教程（**v5 主版本终版**）
 
 **在线：** https://xiaoqianran.github.io/learning-threejs/
