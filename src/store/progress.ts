@@ -1,3 +1,4 @@
+import { LESSONS } from "@/data/lessons";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -13,7 +14,9 @@ export type WrongItem = {
 };
 
 export type ProgressSnapshot = {
+  visited: string[];
   completed: string[];
+  mastered: string[];
   quizScores: Record<string, number>;
   bookmarks: string[];
   notes: Record<string, string>;
@@ -24,7 +27,9 @@ export type ProgressSnapshot = {
 };
 
 type ProgressState = ProgressSnapshot & {
+  markVisited: (slug: string) => void;
   markComplete: (slug: string) => void;
+  markMastered: (slug: string) => void;
   setQuizScore: (slug: string, score: number) => void;
   toggleBookmark: (slug: string) => void;
   setNote: (slug: string, text: string) => void;
@@ -84,7 +89,9 @@ function isSnapshot(data: unknown): data is ProgressSnapshot {
 export const useProgress = create<ProgressState>()(
   persist(
     (set, get) => ({
+      visited: [],
       completed: [],
+      mastered: [],
       quizScores: {},
       bookmarks: [],
       notes: {},
@@ -92,6 +99,16 @@ export const useProgress = create<ProgressState>()(
       checkIns: [],
       streak: 0,
       completedChallenges: [],
+      markVisited: (slug) =>
+        set((s) => ({
+          visited: s.visited.includes(slug) ? s.visited : [...s.visited, slug],
+        })),
+      markMastered: (slug) =>
+        set((s) => ({
+          visited: s.visited.includes(slug) ? s.visited : [...s.visited, slug],
+          completed: s.completed.includes(slug) ? s.completed : [...s.completed, slug],
+          mastered: s.mastered.includes(slug) ? s.mastered : [...s.mastered, slug],
+        })),
       markComplete: (slug) =>
         set((s) =>
           s.completed.includes(slug)
@@ -148,7 +165,9 @@ export const useProgress = create<ProgressState>()(
       exportSnapshot: () => {
         const s = get();
         return {
+          visited: s.visited,
           completed: s.completed,
+          mastered: s.mastered,
           quizScores: s.quizScores,
           bookmarks: s.bookmarks,
           notes: s.notes,
@@ -175,7 +194,9 @@ export const useProgress = create<ProgressState>()(
       },
       reset: () =>
         set({
+          visited: [],
           completed: [],
+          mastered: [],
           quizScores: {},
           bookmarks: [],
           notes: {},
@@ -186,12 +207,14 @@ export const useProgress = create<ProgressState>()(
         }),
     }),
     {
-      name: "threejs-learn-progress-v1",
+      name: "three-learn-progress-v6",
       version: 2,
       migrate: (persisted, from) => {
         const p = (persisted ?? {}) as Partial<ProgressSnapshot>;
         return {
+          visited: p.visited ?? p.completed ?? [],
           completed: p.completed ?? [],
+          mastered: p.mastered ?? [],
           quizScores: p.quizScores ?? {},
           bookmarks: p.bookmarks ?? [],
           notes: p.notes ?? {},
@@ -207,3 +230,12 @@ export const useProgress = create<ProgressState>()(
 );
 
 export { todayKey, computeStreak };
+
+
+export function isCertificateReady(mastered: string[], completed?: string[]) {
+  if (mastered.length > 0 && LESSONS.every((l) => mastered.includes(l.slug))) {
+    return true;
+  }
+  if (completed) return LESSONS.every((l) => completed.includes(l.slug));
+  return false;
+}

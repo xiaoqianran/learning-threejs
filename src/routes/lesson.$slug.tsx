@@ -1,3 +1,4 @@
+import { trackLabel } from "@/lib/nav";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import {
   getAdjacent,
@@ -37,6 +38,8 @@ function LessonPage() {
   const { prev, next } = getAdjacent(slug);
   const completed = useProgress((s) => s.completed);
   const markComplete = useProgress((s) => s.markComplete);
+  const markVisited = useProgress((s) => s.markVisited);
+  const mastered = useProgress((s) => s.mastered);
   const bookmarks = useProgress((s) => s.bookmarks);
   const toggleBookmark = useProgress((s) => s.toggleBookmark);
   const notes = useProgress((s) => s.notes);
@@ -48,6 +51,7 @@ function LessonPage() {
 
   useEffect(() => {
     window.scrollTo({ top: 0 });
+    markVisited(slug);
     setNoteLocal(notes[slug] ?? "");
   }, [slug, notes]);
 
@@ -62,7 +66,7 @@ function LessonPage() {
           第 {idx + 1}/{LESSONS.length} 节
         </span>
         <span className="rounded-full bg-surface-3 px-2 py-0.5 text-[10px]">
-          {lesson.track}路径
+          {trackLabel(lesson.track)}
         </span>
       </div>
 

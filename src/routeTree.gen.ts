@@ -14,6 +14,7 @@ import { Route as CertificateRouteImport } from './routes/certificate'
 import { Route as ChallengeRouteImport } from './routes/challenge'
 import { Route as CheatsheetRouteImport } from './routes/cheatsheet'
 import { Route as HubRouteImport } from './routes/hub'
+import { Route as DocsRouteImport } from './routes/docs'
 import { Route as LabRouteImport } from './routes/lab'
 import { Route as MistakesRouteImport } from './routes/mistakes'
 import { Route as PathRouteImport } from './routes/path'
@@ -46,6 +47,11 @@ const CheatsheetRoute = CheatsheetRouteImport.update({
 const HubRoute = HubRouteImport.update({
   id: '/hub',
   path: '/hub',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocsRoute = DocsRouteImport.update({
+  id: '/docs',
+  path: '/docs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LabRoute = LabRouteImport.update({
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/challenge': typeof ChallengeRoute
   '/cheatsheet': typeof CheatsheetRoute
   '/hub': typeof HubRoute
+  '/docs': typeof DocsRoute
   '/lab': typeof LabRoute
   '/mistakes': typeof MistakesRoute
   '/path': typeof PathRoute
@@ -110,6 +117,7 @@ export interface FileRoutesByTo {
   '/challenge': typeof ChallengeRoute
   '/cheatsheet': typeof CheatsheetRoute
   '/hub': typeof HubRoute
+  '/docs': typeof DocsRoute
   '/lab': typeof LabRoute
   '/mistakes': typeof MistakesRoute
   '/path': typeof PathRoute
@@ -126,6 +134,7 @@ export interface FileRoutesById {
   '/challenge': typeof ChallengeRoute
   '/cheatsheet': typeof CheatsheetRoute
   '/hub': typeof HubRoute
+  '/docs': typeof DocsRoute
   '/lab': typeof LabRoute
   '/mistakes': typeof MistakesRoute
   '/path': typeof PathRoute
@@ -143,6 +152,7 @@ export interface FileRouteTypes {
     | '/challenge'
     | '/cheatsheet'
     | '/hub'
+    | '/docs'
     | '/lab'
     | '/mistakes'
     | '/path'
@@ -158,6 +168,7 @@ export interface FileRouteTypes {
     | '/challenge'
     | '/cheatsheet'
     | '/hub'
+    | '/docs'
     | '/lab'
     | '/mistakes'
     | '/path'
@@ -173,6 +184,7 @@ export interface FileRouteTypes {
     | '/challenge'
     | '/cheatsheet'
     | '/hub'
+    | '/docs'
     | '/lab'
     | '/mistakes'
     | '/path'
@@ -189,6 +201,7 @@ export interface RootRouteChildren {
   ChallengeRoute: typeof ChallengeRoute
   CheatsheetRoute: typeof CheatsheetRoute
   HubRoute: typeof HubRoute
+  DocsRoute: typeof DocsRoute
   LabRoute: typeof LabRoute
   MistakesRoute: typeof MistakesRoute
   PathRoute: typeof PathRoute
@@ -234,6 +247,13 @@ declare module '@tanstack/react-router' {
       path: '/hub'
       fullPath: '/hub'
       preLoaderRoute: typeof HubRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/docs': {
+      id: '/docs'
+      path: '/docs'
+      fullPath: '/docs'
+      preLoaderRoute: typeof DocsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lab': {
@@ -301,6 +321,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChallengeRoute: ChallengeRoute,
   CheatsheetRoute: CheatsheetRoute,
   HubRoute: HubRoute,
+  DocsRoute: DocsRoute,
   LabRoute: LabRoute,
   MistakesRoute: MistakesRoute,
   PathRoute: PathRoute,
